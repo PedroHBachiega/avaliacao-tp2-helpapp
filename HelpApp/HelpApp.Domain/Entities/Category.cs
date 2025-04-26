@@ -6,13 +6,19 @@ namespace HelpApp.Domain.Entities
     {
         #region Atributos
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
         #endregion
 
         #region Construtores
+
+        private Category()
+        {
+            Products = new List<Product>();
+        }
         public Category(string name)
         {
             ValidateDomain(name);
+            Products = new List<Product>();
         }
 
         public Category(int id, string name)
@@ -20,10 +26,19 @@ namespace HelpApp.Domain.Entities
             DomainExceptionValidation.When(id < 0, "Invalid Id value.");
             Id = id;
             ValidateDomain(name);
+            Products = new List<Product>();
         }
 
         public ICollection<Product> Products { get; set; }
         #endregion
+        
+        #region Métodos
+        public void Update(string name)
+        {
+            ValidateDomain(name);
+        }
+        #endregion
+
 
         #region Validação
         private void ValidateDomain(string name)
