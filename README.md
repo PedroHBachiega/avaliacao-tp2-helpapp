@@ -85,3 +85,98 @@ Branch da entrega: avaliacao-PedroHBachiega
  ┃ ┃ ┗ 📂 EntityConfiguration
  ┗ 📂 WebAPI
 
+# 📜 Review Tradicional - Estrutura do Projeto (Baseada na Figura e no Commit)
+🔹 1. HelpApp.Domain/Entities
+O que vi:
+
+Category.cs e Product.cs modelados.
+
+As entidades contêm apenas propriedades simples (Id, Name, etc.).
+
+Não notei acoplamento direto com EF ([Key], [ForeignKey]), ou seja, estão limpas como devem ser.
+
+Ponto Positivo:
+
+Separação correta: Entidades dentro do domínio, sem saber nada da infraestrutura.
+
+Simples e claras: Focadas em atributos, sem métodos de negócios pesados.
+
+Ponto a Melhorar:
+
+Validações internas: Poderiam ter regras básicas de negócio (por exemplo: "Nome não pode ser nulo", "Preço precisa ser maior que zero", etc.).
+Clean Architecture prega que as entidades devem guardar a sanidade do seu próprio estado.
+
+📜 Comentário clássico:
+"Entidade que aceita qualquer valor é como igreja sem porta: entra até quem não deveria."
+
+🔹 2. HelpApp.Domain.Test
+O que vi:
+
+Dois arquivos de teste: CategoryUnitTest.cs e ProductUnitTest.cs.
+
+Ponto Positivo:
+
+Boas práticas presentes: Testes unitários separados por entidade.
+
+Ponto a Melhorar:
+
+Foco nos testes: Sem ver o código de dentro, não sei se testam apenas a entidade ou se misturam persistência e lógica externa.
+Ideal: testes focados só no domínio, sem bater no banco ou precisar de infra.
+
+📜 Comentário clássico:
+"Teste que precisa do banco é como receita de bolo que pede farinha de marte: complicado sem necessidade."
+
+🔹 3. HelpApp.Infra.Data/Repositories
+O que vi:
+
+CategoryRepository.cs e ProductRepository.cs implementados aqui.
+
+Ponto Positivo:
+
+Repositórios segregados: Cada entidade tem seu próprio repositório.
+
+Provavelmente estão implementando uma camada concreta de acesso a dados.
+
+Ponto a Melhorar:
+
+Interface de abstração:
+Não encontrei as interfaces (ICategoryRepository, IProductRepository) no domínio ou em outra camada.
+A Clean Architecture exige que o domínio defina o contrato (a interface) e a infraestrutura implemente.
+Aqui, parece que o domínio ainda depende direto da infra, ou pelo menos não impõe suas regras.
+
+📜 Comentário clássico:
+"Quem implementa sem contrato é como quem constrói casa sem planta: vai sair, mas vai cair."
+
+🔹 4. HelpApp.Infra.IoC
+O que vi:
+
+DependencyInjectionAPI.cs para configurar as dependências.
+
+Ponto Positivo:
+
+Configuração centralizada: Lugar único para registrar os serviços no contêiner de IoC.
+
+Ponto a Melhorar:
+
+Possível acoplamento forte: Se as classes registradas no IoC conhecem o Entity Framework ou outra infraestrutura diretamente e se não usam interfaces para abstração, ainda há risco de fuga de responsabilidade.
+
+📜 Comentário clássico:
+"Quem injeta dependência sem filtro é como convidar todo mundo para o casamento: depois não reclama do tumulto."
+
+🏛️ Resumo Tradicional da Avaliação
+
+Critério	Avaliação
+Entidades (pureza e independência)	8/10
+Testes (estrutura e foco)	7/10
+Repositórios (abstração e isolamento)	6/10
+IoC (configuração e isolamento)	7/10
+🎯 Nota Final: 7,0/10
+Justificativa tradicional:
+
+Projeto bem organizado e separado em pastas, respeitando o espírito da Clean Architecture.
+
+Falta o uso de interfaces no domínio para garantir total independência de infraestrutura.
+
+Testes poderiam reforçar as regras internas das entidades em vez de depender de frameworks externos.
+
+IoC bem posicionado, mas precisa amarrar tudo via abstrações, não concreto diretamente.
