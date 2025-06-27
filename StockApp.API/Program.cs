@@ -1,7 +1,9 @@
+using System.Globalization;
 using StockApp.Application.Interfaces;
 using StockApp.Infra.IoC;
 using StockApp.Infrastructure.Services;
 using StockApp.API.Infrastructure.Middlewares;
+using Microsoft.Extensions.Logging;
 using StockApp.API.Infrastructure.Filters;
 
 internal class Program
@@ -15,7 +17,6 @@ internal class Program
         builder.Logging.AddDebug();
         
         // Add services to the container.
-        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddInfrastructureAPI(builder.Configuration);
 
         builder.Services.AddScoped<IUserService, UserService>();    
