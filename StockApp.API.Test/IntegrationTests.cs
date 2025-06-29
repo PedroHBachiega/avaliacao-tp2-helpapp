@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -42,7 +42,7 @@ namespace StockApp.API.Test
             var loginResponse = await _client.PostAsJsonAsync("/api/users/login", userLoginDto);
             loginResponse.EnsureSuccessStatusCode();
 
-            var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponseDTO>();
+            var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponseDto>();
 
             //Assert//
             Assert.NotNull(tokenResponse);

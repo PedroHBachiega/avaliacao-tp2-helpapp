@@ -155,6 +155,24 @@ public class Program
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
                 };
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+                options.SaveTokens = true;
+            })
+            .AddFacebook(options =>
+            {
+                options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+                options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+                options.SaveTokens = true;
+            })
+            .AddMicrosoftAccount(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+                options.SaveTokens = true;
             });
 
             builder.Services.AddAuthorization(options =>
@@ -217,6 +235,9 @@ public class Program
             }
 
             app.UseHttpsRedirection();
+            
+            // Configurar arquivos estáticos
+            app.UseStaticFiles();
 
             app.UseCors("CorsPolicy");
 

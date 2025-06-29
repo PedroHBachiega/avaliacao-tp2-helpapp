@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace StockApp.Application.DTOs
 {
@@ -12,5 +12,7 @@ namespace StockApp.Application.DTOs
 
         [Required(ErrorMessage = "O campo perfil é obrigatório.")]
         public string? Role { get; set; }
+
+        public string? Email { get; set; }
     }
 }
