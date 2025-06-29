@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using StockApp.Domain.Interfaces;
 using StockApp.Domain.Entities;
+using System.Security.Claims;
+using System;
 
 
 namespace StockApp.API.Controllers;
@@ -21,11 +23,13 @@ public class ProductsController : ControllerBase
     private readonly ICacheService _cache;
     private readonly IProductRepository _productRepository;
     private readonly IProductService _productService;
-    public ProductsController(IProductService productService, IProductRepository productRepository, ICacheService cache)
+    private readonly IReviewService _reviewService;
+    public ProductsController(IProductService productService, IProductRepository productRepository, ICacheService cache, IReviewService reviewService)
     {
         _productService = productService;
         _productRepository = productRepository;
         _cache = cache;
+        _reviewService = reviewService;
     }
 
     /// <summary>
@@ -281,6 +285,61 @@ public class ProductsController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, "Erro interno do servidor ao comparar produtos da categoria.");
+        }
+    }
+
+    [HttpPost("{productId}/review")]
+    [Authorize]
+    public async Task<IActionResult> AddReview(int productId, [FromBody] CreateReviewDTO review)
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var createdReview = await _reviewService.CreateReviewAsync(productId, userId, review);
+            return Ok(createdReview);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erro interno do servidor ao adicionar avaliação.");
+        }
+    }
+
+    [HttpGet("{productId}/reviews")]
+    public async Task<IActionResult> GetProductReviews(int productId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var reviews = await _reviewService.GetProductReviewsPagedAsync(productId, pageNumber, pageSize);
+            return Ok(reviews);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erro interno do servidor ao buscar avaliações.");
+        }
+    }
+
+    [HttpGet("{productId}/reviews/summary")]
+    public async Task<IActionResult> GetProductReviewSummary(int productId)
+    {
+        try
+        {
+            var summary = await _reviewService.GetReviewSummaryByProductIdAsync(productId);
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erro interno do servidor ao buscar resumo de avaliações.");
         }
     }
 }
