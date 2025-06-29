@@ -10,6 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\StockApp.Domain\StockApp.Domain.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.0" />
