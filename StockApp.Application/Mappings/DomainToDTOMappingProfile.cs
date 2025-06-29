@@ -38,6 +38,12 @@ namespace StockApp.Application.Mappings
 
             CreateMap<ProductDTO, Product>()
                 .ForMember(dest => dest.Category, opt => opt.Ignore());
+
+            // Mapeamentos para Employee e EmployeeEvaluation
+            CreateMap<Employee, EmployeeDTO>().ReverseMap();
+            CreateMap<EmployeeEvaluation, EmployeeEvaluationDto>()
+                .ReverseMap();
+            CreateMap<CreateEmployeeEvaluationDto, EmployeeEvaluation>();
         }
     }
 }

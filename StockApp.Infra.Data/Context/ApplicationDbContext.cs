@@ -22,6 +22,8 @@ namespace StockApp.Infra.Data.Context
         public DbSet<Purchase> Purchases { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<EmployeeEvaluation> EmployeeEvaluations { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)

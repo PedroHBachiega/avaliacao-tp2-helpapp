@@ -29,6 +29,8 @@ namespace StockApp.Infra.IoC
             services.AddScoped<ISupplierEvaluationRepository, SupplierEvaluationRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IContractRepository, ContractRepository>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IEmployeeEvaluationRepository, EmployeeEvaluationRepository>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISupplierService, SupplierService>();
@@ -36,6 +38,8 @@ namespace StockApp.Infra.IoC
             services.AddScoped<ISupplierRelationshipManagementService, SupplierRelationshipManagementService>();
             services.AddScoped<IContractManagementService, ContractManagementService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
 
             services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 
