@@ -58,6 +58,7 @@ public class Program
             builder.Services.AddScoped<ICacheService, CacheService>();
             builder.Services.AddScoped<IMfaService, MfaService>();
             builder.Services.AddScoped<IJustInTimeInventoryService, JustInTimeInventoryService>();
+            builder.Services.AddScoped<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
 
             builder.Services.AddControllers(options =>
             {
