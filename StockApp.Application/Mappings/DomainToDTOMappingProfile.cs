@@ -16,6 +16,10 @@ namespace StockApp.Application.Mappings
             CreateMap<Category, CategoryDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>().ReverseMap();
             CreateMap<Supplier, SupplierDTO>().ReverseMap();
+
+            CreateMap<SupplierEvaluation, SupplierEvaluationDto>().ReverseMap();
+            CreateMap<SupplierContract, SupplierContractDto>().ReverseMap();
+
             CreateMap<Review, ReviewDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ReverseMap();
@@ -23,6 +27,7 @@ namespace StockApp.Application.Mappings
             CreateMap<UpdateReviewDTO, Review>();
             CreateMap<Review, ReviewModerationDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+
 
             CreateMap<ProductDTO, Product>()
                 .ForMember(dest => dest.Category, opt => opt.Ignore());
