@@ -19,6 +19,7 @@ namespace StockApp.Domain.Entities
         // Coleções de navegação
         public ICollection<SupplierContract> Contracts { get; set; } = new List<SupplierContract>();
         public ICollection<SupplierEvaluation> Evaluations { get; set; } = new List<SupplierEvaluation>();
+        public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
         #endregion
 
         #region Construtores
