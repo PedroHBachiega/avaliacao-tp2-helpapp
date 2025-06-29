@@ -13,13 +13,23 @@ namespace StockApp.API.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly ITaxService _taxService;
 
-        public ReportsController(IProductService productService, ICategoryService categoryService)
+        public ReportsController(IProductService productService, ICategoryService categoryService, ITaxService taxService)
         {
             _productService = productService;
             _categoryService = categoryService;
+            _taxService = taxService;
         }
 
+        [HttpGet("tax-report")]
+        public async Task<IActionResult> GetTaxReport()
+        {
+            var products = await _productService.GetProducts();
+            var totalSales = products.Sum(p => p.Price * p.Stock); // Exemplo: total de vendas
+            var taxAmount = _taxService.CalculateTax(totalSales);
+            return Ok(new { TotalSales = totalSales, TaxAmount = taxAmount, TaxRate = "15%" });
+        }
         [HttpGet("products")]
         public async Task<ActionResult<object>> GetProductsReport([FromQuery] ProductSearchDTO searchParameters)
         {
