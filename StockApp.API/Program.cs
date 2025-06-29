@@ -52,13 +52,14 @@ public class Program
             });
 
             builder.Services.AddInfrastructureAPI(builder.Configuration);
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<IInventoryService, InventoryService>();
-            builder.Services.AddScoped<ICacheService, CacheService>();
-            builder.Services.AddScoped<IMfaService, MfaService>();
-            builder.Services.AddScoped<IJustInTimeInventoryService, JustInTimeInventoryService>();
-            builder.Services.AddScoped<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
+            builder.Services.AddScoped<IUserService, StockApp.Infrastructure.Services.UserService>();
+            builder.Services.AddScoped<IProductRepository, StockApp.Infra.Data.Repositories.ProductRepository>();
+            builder.Services.AddScoped<IInventoryService, StockApp.Application.Services.InventoryService>();
+            builder.Services.AddScoped<ICacheService, StockApp.Infra.Data.Services.CacheService>();
+            builder.Services.AddScoped<IMfaService, StockApp.Infra.Data.Services.MfaService>();
+            builder.Services.AddScoped<IJustInTimeInventoryService, StockApp.Infra.Data.Services.JustInTimeInventoryService>();
+            builder.Services.AddScoped<IEmployeePerformanceEvaluationService, StockApp.Application.Services.EmployeePerformanceEvaluationService>();
+            builder.Services.AddScoped<ISalesPredictionService, StockApp.Application.Services.SalesPredictionService>();
 
             builder.Services.AddControllers(options =>
             {
