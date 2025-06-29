@@ -56,7 +56,9 @@ namespace StockApp.API.Test
             Assert.True(nextCalled);
             Assert.Equal(200, context.Response.StatusCode);
             Assert.True(context.Response.Headers.ContainsKey("X-RateLimit-Limit"));
+            Assert.Equal("5", context.Response.Headers["X-RateLimit-Limit"].ToString());
             Assert.True(context.Response.Headers.ContainsKey("X-RateLimit-Remaining"));
+            Assert.Equal("4", context.Response.Headers["X-RateLimit-Remaining"].ToString());
             Assert.True(context.Response.Headers.ContainsKey("X-RateLimit-Reset"));
         }
 
@@ -76,11 +78,18 @@ namespace StockApp.API.Test
             var middleware = new RateLimitingMiddleware(next, _memoryCache, _loggerMock.Object, _options);
 
             // Act - Fazer requisições até exceder o limite
-            for (int i = 0; i < 4; i++) // 3 é o limite para POST, então a 4ª deve falhar
+            for (int i = 0; i < 3; i++) // Primeiras 3 requisições devem passar
             {
-                context = CreateHttpContext("POST", "/api/test");
-                await middleware.Invoke(context);
+                var tempContext = CreateHttpContext("POST", "/api/test");
+                await middleware.Invoke(tempContext);
+                Assert.Equal(200, tempContext.Response.StatusCode);
             }
+            
+            // Resetar a flag nextCalled antes da última requisição
+            nextCalled = false;
+            
+            // A 4ª requisição deve falhar
+            await middleware.Invoke(context);
 
             // Assert
             Assert.False(nextCalled); // A última requisição não deve chamar o próximo middleware
@@ -143,23 +152,37 @@ namespace StockApp.API.Test
 
             // Assert
             Assert.Equal(200, context.Response.StatusCode);
-            // O middleware deve usar o primeiro IP do X-Forwarded-For
+            Assert.Equal("5", context.Response.Headers["X-RateLimit-Limit"].ToString());
+            Assert.Equal("4", context.Response.Headers["X-RateLimit-Remaining"].ToString());
+            
+            // Verificar que o middleware está usando o primeiro IP do X-Forwarded-For
+            // Criamos um segundo contexto com o mesmo IP para verificar que o contador é compartilhado
+            var context2 = CreateHttpContext("GET", "/api/test");
+            context2.Request.Headers.Add("X-Forwarded-For", "192.168.1.100, 10.0.0.2");
+            await middleware.Invoke(context2);
+            
+            Assert.Equal("3", context2.Response.Headers["X-RateLimit-Remaining"].ToString());
         }
 
         [Fact]
         public async Task Invoke_RateLimitExceeded_ShouldLogWarning()
         {
             // Arrange
-            var context = CreateHttpContext("POST", "/api/test");
             RequestDelegate next = (HttpContext ctx) => Task.CompletedTask;
             var middleware = new RateLimitingMiddleware(next, _memoryCache, _loggerMock.Object, _options);
 
             // Act - Exceder o limite
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++) // Primeiras 3 requisições devem passar
             {
-                context = CreateHttpContext("POST", "/api/test");
-                await middleware.Invoke(context);
+                var tempContext = CreateHttpContext("POST", "/api/test");
+                await middleware.Invoke(tempContext);
+                Assert.Equal(200, tempContext.Response.StatusCode);
             }
+            
+            // A 4ª requisição deve falhar e gerar o log
+            var finalContext = CreateHttpContext("POST", "/api/test");
+            await middleware.Invoke(finalContext);
+            Assert.Equal(429, finalContext.Response.StatusCode);
 
             // Assert
             _loggerMock.Verify(

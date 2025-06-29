@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StockApp.API.Models;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -13,10 +15,12 @@ namespace StockApp.API.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
+        private readonly ISentimentAnalysisService _sentimentAnalysisService;
 
-        public ReviewsController(IReviewService reviewService)
+        public ReviewsController(IReviewService reviewService, ISentimentAnalysisService sentimentAnalysisService)
         {
             _reviewService = reviewService;
+            _sentimentAnalysisService = sentimentAnalysisService;
         }
 
         [HttpGet]
@@ -53,13 +57,13 @@ namespace StockApp.API.Controllers
 
         [HttpGet("user/{userId}")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetUserReviews(string userId)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetUserReviews(string userId, int page = 1, int pageSize = 10)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (currentUserId != userId && !User.IsInRole("Admin"))
                 return Forbid();
 
-            var reviews = await _reviewService.GetReviewsByUserIdAsync(userId);
+            var reviews = await _reviewService.GetReviewsByUserIdAsync(userId, page, pageSize);
             return Ok(reviews);
         }
 
@@ -168,6 +172,24 @@ namespace StockApp.API.Controllers
             {
                 return NotFound(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Analisa o sentimento de um texto
+        /// </summary>
+        /// <param name="text">Texto a ser analisado</param>
+        /// <returns>Resultado da análise de sentimento (Positivo, Negativo, Neutro)</returns>
+        [HttpPost("analyze-sentiment")]
+        public async Task<ActionResult<string>> AnalyzeSentiment([FromBody] SentimentAnalysisRequest request)
+        {
+            if (request == null)
+                return BadRequest();
+                
+            if (string.IsNullOrWhiteSpace(request.Text))
+                return Ok("Neutro");
+
+            var sentiment = await _sentimentAnalysisService.AnalyzeSentimentAsync(request.Text);
+            return Ok(sentiment);
         }
     }
 }

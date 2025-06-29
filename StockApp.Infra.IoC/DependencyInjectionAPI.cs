@@ -33,6 +33,7 @@ namespace StockApp.Infra.IoC
             services.AddScoped<ISupplierService, SupplierService>();
             services.AddScoped<ISupplierManagementService, SupplierManagementService>();
             services.AddScoped<ISupplierRelationshipManagementService, SupplierRelationshipManagementService>();
+            services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
             services.AddScoped<IAuthService, AuthService>();
 
             services.AddAutoMapper(typeof(DomainToDTOMappingProfile));

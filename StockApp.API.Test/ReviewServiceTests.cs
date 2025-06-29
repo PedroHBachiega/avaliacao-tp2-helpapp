@@ -1,6 +1,7 @@
 using AutoMapper;
 using Moq;
 using StockApp.Application.DTOs;
+using StockApp.Application.Interfaces;
 using StockApp.Application.Mappings;
 using StockApp.Application.Services;
 using StockApp.Domain.Entities;
@@ -31,7 +32,8 @@ namespace StockApp.API.Test
             });
             _mapper = config.CreateMapper();
             
-            _reviewService = new ReviewService(_reviewRepositoryMock.Object, _productRepositoryMock.Object, _mapper);
+            var sentimentAnalysisServiceMock = new Mock<ISentimentAnalysisService>();
+            _reviewService = new ReviewService(_reviewRepositoryMock.Object, _productRepositoryMock.Object, _mapper, sentimentAnalysisServiceMock.Object);
         }
 
         [Fact]

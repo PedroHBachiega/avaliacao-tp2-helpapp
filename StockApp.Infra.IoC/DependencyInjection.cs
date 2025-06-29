@@ -42,6 +42,7 @@ namespace StockApp.Infra.IoC
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IInventoryService, InventoryService>();
             services.AddScoped<IJustInTimeInventoryService, JustInTimeInventoryService>();
+            services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<ITaxService, TaxService>();
             services.AddScoped<IReportService, ReportService>();

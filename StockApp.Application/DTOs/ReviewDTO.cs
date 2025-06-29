@@ -13,6 +13,7 @@ namespace StockApp.Application.DTOs
         public DateTime Date { get; set; }
         public bool IsApproved { get; set; }
         public string ProductName { get; set; }
+        public string SentimentAnalysis { get; set; }
     }
 
     public class CreateReviewDTO

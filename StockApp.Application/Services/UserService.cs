@@ -31,7 +31,8 @@ namespace StockApp.Infrastructure.Services
             if (userDto.Password.Length < 8)
                 return false;
                 
-            return true;
+            // Após validar, criar o usuário
+            return await CreateUserAsync(userDto);
         }
 
         public async Task<dynamic> GetUserByEmailAsync(string email)
@@ -53,11 +54,8 @@ namespace StockApp.Infrastructure.Services
                 // Hash da senha
                 var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
-                // Criar usuário (assumindo que existe um método CreateAsync no repository)
-                // Como não temos acesso ao método exato, vamos assumir que existe
-                // Você pode precisar ajustar isso baseado na implementação real do repository
-                
-                return true; // Retorna true se criado com sucesso
+                // Criar usuário usando o método do repositório
+                return await _userRepository.CreateUserAsync(user.Username, hashedPassword, user.Role);
             }
             catch
             {

@@ -15,30 +15,55 @@ namespace StockApp.Application.Services
         private readonly IReviewRepository _reviewRepository;
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
+        private readonly ISentimentAnalysisService _sentimentAnalysisService;
 
-        public ReviewService(IReviewRepository reviewRepository, IProductRepository productRepository, IMapper mapper)
+        public ReviewService(IReviewRepository reviewRepository, IProductRepository productRepository, IMapper mapper, ISentimentAnalysisService sentimentAnalysisService)
         {
             _reviewRepository = reviewRepository;
             _productRepository = productRepository;
             _mapper = mapper;
+            _sentimentAnalysisService = sentimentAnalysisService;
         }
 
         public async Task<IEnumerable<ReviewDTO>> GetAllReviewsAsync()
         {
             var reviews = await _reviewRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ReviewDTO>>(reviews);
+            var reviewDtos = _mapper.Map<IEnumerable<ReviewDTO>>(reviews).ToList();
+            
+            // Adiciona análise de sentimento para cada review
+            for (int i = 0; i < reviewDtos.Count; i++)
+            {
+                reviewDtos[i].SentimentAnalysis = await _sentimentAnalysisService.AnalyzeSentimentAsync(reviewDtos[i].Comment);
+            }
+            
+            return reviewDtos;
         }
 
         public async Task<ReviewDTO> GetReviewByIdAsync(int id)
         {
             var review = await _reviewRepository.GetByIdAsync(id);
-            return _mapper.Map<ReviewDTO>(review);
+            var reviewDto = _mapper.Map<ReviewDTO>(review);
+            
+            if (reviewDto != null)
+            {
+                reviewDto.SentimentAnalysis = await _sentimentAnalysisService.AnalyzeSentimentAsync(reviewDto.Comment);
+            }
+            
+            return reviewDto;
         }
 
         public async Task<IEnumerable<ReviewDTO>> GetReviewsByProductIdAsync(int productId)
         {
             var reviews = await _reviewRepository.GetApprovedReviewsByProductIdAsync(productId);
-            return _mapper.Map<IEnumerable<ReviewDTO>>(reviews);
+            var reviewDtos = _mapper.Map<IEnumerable<ReviewDTO>>(reviews).ToList();
+            
+            // Adiciona análise de sentimento para cada review
+            for (int i = 0; i < reviewDtos.Count; i++)
+            {
+                reviewDtos[i].SentimentAnalysis = await _sentimentAnalysisService.AnalyzeSentimentAsync(reviewDtos[i].Comment);
+            }
+            
+            return reviewDtos;
         }
 
         public async Task<IEnumerable<ReviewDTO>> GetReviewsByProductIdAsync(int productId, int pageNumber, int pageSize)
@@ -100,7 +125,10 @@ namespace StockApp.Application.Services
             var review = new Review(productId, userId, createReviewDto.Rating, createReviewDto.Comment);
             var createdReview = await _reviewRepository.CreateAsync(review);
 
-            return _mapper.Map<ReviewDTO>(createdReview);
+            var reviewDto = _mapper.Map<ReviewDTO>(createdReview);
+            reviewDto.SentimentAnalysis = await _sentimentAnalysisService.AnalyzeSentimentAsync(reviewDto.Comment);
+            
+            return reviewDto;
         }
 
         public async Task<ReviewDTO> UpdateReviewAsync(int id, string userId, UpdateReviewDTO updateReviewDto)
@@ -115,7 +143,10 @@ namespace StockApp.Application.Services
             review.Update(updateReviewDto.Rating, updateReviewDto.Comment);
             var updatedReview = await _reviewRepository.UpdateAsync(review);
 
-            return _mapper.Map<ReviewDTO>(updatedReview);
+            var reviewDto = _mapper.Map<ReviewDTO>(updatedReview);
+            reviewDto.SentimentAnalysis = await _sentimentAnalysisService.AnalyzeSentimentAsync(reviewDto.Comment);
+            
+            return reviewDto;
         }
 
         public async Task DeleteReviewAsync(int id, string userId)

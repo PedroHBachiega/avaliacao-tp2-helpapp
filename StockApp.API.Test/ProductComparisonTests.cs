@@ -3,6 +3,7 @@ using Moq;
 using StockApp.API.Controllers;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using StockApp.Domain.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,7 +24,8 @@ namespace StockApp.API.Test
             _mockProductService = new Mock<IProductService>();
             _mockCacheService = new Mock<ICacheService>();
             _mockProductRepository = new Mock<IProductRepository>();
-            _controller = new ProductsController(_mockProductService.Object, _mockProductRepository.Object, _mockCacheService.Object);
+            var mockReviewService = new Mock<IReviewService>();
+            _controller = new ProductsController(_mockProductService.Object, _mockProductRepository.Object, _mockCacheService.Object, mockReviewService.Object);
         }
 
         [Fact]
@@ -277,7 +279,29 @@ namespace StockApp.API.Test
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var comparison = Assert.IsType<ProductComparisonDTO>(okResult.Value);
+            Assert.Equal(2, comparison.Products.Count);
+            Assert.Equal(2, comparison.Summary.TotalProductsCompared);
             _mockProductService.Verify(x => x.GetProductsWithFiltersAsync(It.Is<ProductSearchDTO>(p => p.PageSize == expectedLimit)), Times.Once);
+        }
+
+        [Fact]
+        public async Task CompareProductsByCategory_ServiceThrowsException_ReturnsInternalServerError()
+        {
+            // Arrange
+            int categoryId = 1;
+            int limit = 5;
+
+            _mockProductService.Setup(x => x.GetProductsWithFiltersAsync(It.IsAny<ProductSearchDTO>()))
+                              .ThrowsAsync(new Exception("Erro interno"));
+
+            // Act
+            var result = await _controller.CompareProductsByCategory(categoryId, limit);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result.Result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+            Assert.Equal("Erro interno do servidor ao comparar produtos da categoria.", statusCodeResult.Value);
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using StockApp.API.Controllers;
+using StockApp.API.Models;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
 using StockApp.Application.Mappings;
@@ -18,12 +19,14 @@ namespace StockApp.API.Test
     public class ReviewsControllerTests
     {
         private readonly Mock<IReviewService> _reviewServiceMock;
+        private readonly Mock<ISentimentAnalysisService> _sentimentAnalysisServiceMock;
         private readonly ReviewsController _controller;
         private readonly IMapper _mapper;
 
         public ReviewsControllerTests()
         {
             _reviewServiceMock = new Mock<IReviewService>();
+            _sentimentAnalysisServiceMock = new Mock<ISentimentAnalysisService>();
             
             var config = new MapperConfiguration(cfg =>
             {
@@ -31,7 +34,7 @@ namespace StockApp.API.Test
             });
             _mapper = config.CreateMapper();
             
-            _controller = new ReviewsController(_reviewServiceMock.Object, _mapper);
+            _controller = new ReviewsController(_reviewServiceMock.Object, _sentimentAnalysisServiceMock.Object);
             
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
@@ -380,13 +383,65 @@ namespace StockApp.API.Test
                 .ReturnsAsync(userReviews);
 
             // Act
-            var result = await _controller.GetUserReviews(page, pageSize);
+            var result = await _controller.GetUserReviews("user123", page, pageSize);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var returnedReviews = Assert.IsType<List<ReviewDTO>>(okResult.Value);
             Assert.Equal(2, returnedReviews.Count);
             Assert.All(returnedReviews, r => Assert.Equal("user123", r.UserId));
+        }
+
+        [Fact]
+        public async Task AnalyzeSentiment_ValidRequest_ShouldReturnOkWithSentiment()
+        {
+            // Arrange
+            var request = new SentimentAnalysisRequest
+            {
+                Text = "Excelente produto, estou muito satisfeito!"
+            };
+
+            _sentimentAnalysisServiceMock.Setup(x => x.AnalyzeSentimentAsync(request.Text))
+                .ReturnsAsync("Positivo");
+
+            // Act
+            var result = await _controller.AnalyzeSentiment(request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var sentiment = Assert.IsType<string>(okResult.Value);
+            Assert.Equal("Positivo", sentiment);
+        }
+
+        [Fact]
+        public async Task AnalyzeSentiment_EmptyText_ShouldReturnNeutro()
+        {
+            // Arrange
+            var request = new SentimentAnalysisRequest
+            {
+                Text = ""
+            };
+
+            _sentimentAnalysisServiceMock.Setup(x => x.AnalyzeSentimentAsync(request.Text))
+                .ReturnsAsync("Neutro");
+
+            // Act
+            var result = await _controller.AnalyzeSentiment(request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var sentiment = Assert.IsType<string>(okResult.Value);
+            Assert.Equal("Neutro", sentiment);
+        }
+
+        [Fact]
+        public async Task AnalyzeSentiment_NullRequest_ShouldReturnBadRequest()
+        {
+            // Act
+            var result = await _controller.AnalyzeSentiment(null);
+
+            // Assert
+            Assert.IsType<BadRequestResult>(result);
         }
     }
 }

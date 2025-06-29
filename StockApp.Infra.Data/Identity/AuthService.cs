@@ -61,11 +61,30 @@ namespace StockApp.Infra.Data.Identity
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            
+            // Verifica se a propriedade é Username ou UserName
+            string username = null;
+            if (user.GetType().GetProperty("Username") != null)
+            {
+                username = user.Username;
+            }
+            else if (user.GetType().GetProperty("UserName") != null)
+            {
+                username = user.UserName;
+            }
+            else
+            {
+                // Fallback para objetos dinâmicos
+                try { username = user.Username; } catch { }
+                if (username == null) try { username = user.UserName; } catch { }
+                if (username == null) username = "unknown";
+            }
+            
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.Role, user.Role),
                     new Claim("Permission", "CanManageStock")
                 }),

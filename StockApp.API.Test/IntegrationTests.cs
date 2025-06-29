@@ -39,7 +39,7 @@ namespace StockApp.API.Test
             registerResponse.EnsureSuccessStatusCode();
 
             //Login//
-            var loginResponse = await _client.PostAsJsonAsync("/api/users/login", userLoginDto);
+            var loginResponse = await _client.PostAsJsonAsync("/api/token/login", userLoginDto);
             loginResponse.EnsureSuccessStatusCode();
 
             var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponseDto>();
