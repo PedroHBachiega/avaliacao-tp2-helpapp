@@ -107,5 +107,32 @@ namespace StockApp.API.Controllers
 
             return Ok(report);
         }
+
+        [HttpGet("products/export/csv")]
+        public async Task<IActionResult> ExportProductsToCSV([FromQuery] ProductSearchDTO searchParameters)
+        {
+            if (!searchParameters.IsValid())
+            {
+                var errors = searchParameters.GetValidationErrors();
+                return BadRequest(new { errors });
+            }
+
+            searchParameters.PageSize = int.MaxValue;
+            searchParameters.PageNumber = 1;
+            
+            var filteredProducts = await _productService.GetProductsWithFiltersAsync(searchParameters);
+            var csv = new StringBuilder();
+            csv.AppendLine("Id,Name,Description,Price,Stock,Category,TotalValue");
+
+            foreach (var product in filteredProducts.Data)
+            {
+                csv.AppendLine($"{product.Id},\"{product.Name}\",\"{product.Description}\",{product.Price},{product.Stock},\"{product.Category?.Name}\",{product.Price * product.Stock}");
+            }
+
+            var fileName = $"products_report_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+            return File(bytes, "text/csv", fileName);
+        }
     }
 }
