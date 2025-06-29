@@ -107,38 +107,5 @@ namespace StockApp.API.Controllers
 
             return Ok(report);
         }
-
-        [HttpGet("by-category")]
-        public async Task<ActionResult<object>> GetProductsByCategoryReport()
-        {
-            var allProducts = await _productService.GetProducts();
-            var categories = await _categoryService.GetCategories();
-
-            var categoryReport = categories.Select(category => new
-            {
-                CategoryId = category.Id,
-                CategoryName = category.Name,
-                ProductCount = allProducts.Count(p => p.CategoryId == category.Id),
-                TotalValue = allProducts.Where(p => p.CategoryId == category.Id).Sum(p => p.Price * p.Stock),
-                AveragePrice = allProducts.Where(p => p.CategoryId == category.Id).Any() 
-                    ? allProducts.Where(p => p.CategoryId == category.Id).Average(p => p.Price) 
-                    : 0,
-                TotalStock = allProducts.Where(p => p.CategoryId == category.Id).Sum(p => p.Stock)
-            }).OrderByDescending(c => c.TotalValue);
-
-            var report = new
-            {
-                Summary = new
-                {
-                    TotalCategories = categories.Count(),
-                    TotalProducts = allProducts.Count(),
-                    TotalValue = allProducts.Sum(p => p.Price * p.Stock),
-                    GeneratedAt = DateTime.UtcNow
-                },
-                Categories = categoryReport
-            };
-
-            return Ok(report);
-        }
     }
 }
