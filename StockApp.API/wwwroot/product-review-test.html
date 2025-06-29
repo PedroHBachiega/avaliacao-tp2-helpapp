@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Avaliação de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .review-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .rating {
+            color: #ffc107;
+            font-size: 18px;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste de Funcionalidade de Avaliação de Produtos</h1>
+
+    <!-- Seção de Autenticação -->
+    <div class="container">
+        <h2>1. Autenticação</h2>
+        <div class="form-group">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" placeholder="Digite o nome de usuário">
+        </div>
+        <div class="form-group">
+            <label for="password">Senha:</label>
+            <input type="password" id="password" placeholder="Digite a senha">
+        </div>
+        <button onclick="login()">Fazer Login</button>
+        <div id="authResult" class="result"></div>
+    </div>
+
+    <div class="two-column">
+        <!-- Seção de Produtos -->
+        <div class="container">
+            <h2>2. Carregar Produtos</h2>
+            <button onclick="loadProducts()">Carregar Lista de Produtos</button>
+            <div id="productsResult" class="result"></div>
+        </div>
+
+        <!-- Seção de Adicionar Avaliação -->
+        <div class="container">
+            <h2>3. Adicionar Avaliação</h2>
+            <div class="form-group">
+                <label for="productId">ID do Produto:</label>
+                <input type="number" id="productId" placeholder="Digite o ID do produto">
+            </div>
+            <div class="form-group">
+                <label for="rating">Avaliação (1-5):</label>
+                <select id="rating">
+                    <option value="1">1 - Muito Ruim</option>
+                    <option value="2">2 - Ruim</option>
+                    <option value="3">3 - Regular</option>
+                    <option value="4">4 - Bom</option>
+                    <option value="5">5 - Excelente</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="comment">Comentário:</label>
+                <textarea id="comment" rows="4" placeholder="Digite seu comentário sobre o produto"></textarea>
+            </div>
+            <button onclick="addReview()">Adicionar Avaliação</button>
+            <div id="addReviewResult" class="result"></div>
+        </div>
+    </div>
+
+    <div class="two-column">
+        <!-- Seção de Visualizar Avaliações -->
+        <div class="container">
+            <h2>4. Visualizar Avaliações do Produto</h2>
+            <div class="form-group">
+                <label for="viewProductId">ID do Produto:</label>
+                <input type="number" id="viewProductId" placeholder="Digite o ID do produto">
+            </div>
+            <button onclick="viewProductReviews()">Ver Avaliações</button>
+            <div id="viewReviewsResult" class="result"></div>
+        </div>
+
+        <!-- Seção de Resumo de Avaliações -->
+        <div class="container">
+            <h2>5. Resumo de Avaliações</h2>
+            <div class="form-group">
+                <label for="summaryProductId">ID do Produto:</label>
+                <input type="number" id="summaryProductId" placeholder="Digite o ID do produto">
+            </div>
+            <button onclick="getReviewSummary()">Ver Resumo</button>
+            <div id="summaryResult" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Seção de Gerenciamento Admin -->
+    <div class="container">
+        <h2>6. Gerenciamento Admin (Apenas Administradores)</h2>
+        <div class="two-column">
+            <div>
+                <button onclick="getPendingReviews()">Ver Avaliações Pendentes</button>
+                <div id="pendingResult" class="result"></div>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label for="reviewIdApprove">ID da Avaliação:</label>
+                    <input type="number" id="reviewIdApprove" placeholder="ID da avaliação">
+                </div>
+                <button onclick="approveReview()">Aprovar</button>
+                <button onclick="rejectReview()" style="background-color: #dc3545; margin-top: 5px;">Rejeitar</button>
+                <div id="moderationResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const baseUrl = '/api';
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('authResult');
+
+            if (!username || !password) {
+                showResult(resultDiv, 'Por favor, preencha usuário e senha.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: username,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    showResult(resultDiv, `Login realizado com sucesso!\nToken: ${authToken.substring(0, 50)}...`, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro no login: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadProducts() {
+            const resultDiv = document.getElementById('productsResult');
+
+            try {
+                const response = await fetch(`${baseUrl}/Products`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const products = await response.json();
+                    let productList = 'Produtos disponíveis:\n\n';
+                    products.forEach(product => {
+                        productList += `ID: ${product.id} - ${product.name} - R$ ${product.price}\n`;
+                    });
+                    showResult(resultDiv, productList, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao carregar produtos: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function addReview() {
+            const productId = document.getElementById('productId').value;
+            const rating = document.getElementById('rating').value;
+            const comment = document.getElementById('comment').value;
+            const resultDiv = document.getElementById('addReviewResult');
+
+            if (!productId || !rating || !comment) {
+                showResult(resultDiv, 'Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+
+            if (!authToken) {
+                showResult(resultDiv, 'Por favor, faça login primeiro.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Products/${productId}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        rating: parseInt(rating),
+                        comment: comment
+                    })
+                });
+
+                if (response.ok) {
+                    const review = await response.json();
+                    showResult(resultDiv, `Avaliação adicionada com sucesso!\n\nID: ${review.id}\nProduto: ${review.productId}\nAvaliação: ${review.rating}/5\nComentário: ${review.comment}\nData: ${new Date(review.date).toLocaleString()}\nStatus: ${review.isApproved ? 'Aprovada' : 'Pendente'}`, 'success');
+                    
+                    // Limpar campos
+                    document.getElementById('comment').value = '';
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao adicionar avaliação: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function viewProductReviews() {
+            const productId = document.getElementById('viewProductId').value;
+            const resultDiv = document.getElementById('viewReviewsResult');
+
+            if (!productId) {
+                showResult(resultDiv, 'Por favor, digite o ID do produto.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Products/${productId}/reviews`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let reviewsText = `Avaliações do Produto ${productId}:\n\nTotal: ${data.totalCount} avaliações\nPágina: ${data.pageNumber}\n\n`;
+                    
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(review => {
+                            reviewsText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                            reviewsText += `ID: ${review.id}\n`;
+                            reviewsText += `Avaliação: ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)} (${review.rating}/5)\n`;
+                            reviewsText += `Comentário: ${review.comment}\n`;
+                            reviewsText += `Data: ${new Date(review.date).toLocaleString()}\n`;
+                            reviewsText += `Status: ${review.isApproved ? 'Aprovada' : 'Pendente'}\n\n`;
+                        });
+                    } else {
+                        reviewsText += 'Nenhuma avaliação encontrada para este produto.';
+                    }
+                    
+                    showResult(resultDiv, reviewsText, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao buscar avaliações: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function getReviewSummary() {
+            const productId = document.getElementById('summaryProductId').value;
+            const resultDiv = document.getElementById('summaryResult');
+
+            if (!productId) {
+                showResult(resultDiv, 'Por favor, digite o ID do produto.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Products/${productId}/reviews/summary`);
+
+                if (response.ok) {
+                    const summary = await response.json();
+                    const summaryText = `Resumo de Avaliações - Produto ${productId}:\n\n` +
+                        `Avaliação Média: ${summary.averageRating.toFixed(1)}/5.0\n` +
+                        `Total de Avaliações: ${summary.totalReviews}\n\n` +
+                        `Distribuição:\n` +
+                        `5 estrelas: ${summary.fiveStars} (${((summary.fiveStars/summary.totalReviews)*100).toFixed(1)}%)\n` +
+                        `4 estrelas: ${summary.fourStars} (${((summary.fourStars/summary.totalReviews)*100).toFixed(1)}%)\n` +
+                        `3 estrelas: ${summary.threeStars} (${((summary.threeStars/summary.totalReviews)*100).toFixed(1)}%)\n` +
+                        `2 estrelas: ${summary.twoStars} (${((summary.twoStars/summary.totalReviews)*100).toFixed(1)}%)\n` +
+                        `1 estrela: ${summary.oneStar} (${((summary.oneStar/summary.totalReviews)*100).toFixed(1)}%)`;
+                    
+                    showResult(resultDiv, summaryText, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao buscar resumo: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function getPendingReviews() {
+            const resultDiv = document.getElementById('pendingResult');
+
+            if (!authToken) {
+                showResult(resultDiv, 'Por favor, faça login primeiro.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Reviews/pending`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const reviews = await response.json();
+                    let reviewsText = `Avaliações Pendentes (${reviews.length}):\n\n`;
+                    
+                    if (reviews.length > 0) {
+                        reviews.forEach(review => {
+                            reviewsText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                            reviewsText += `ID: ${review.id}\n`;
+                            reviewsText += `Produto: ${review.productName} (ID: ${review.productId})\n`;
+                            reviewsText += `Usuário: ${review.userId}\n`;
+                            reviewsText += `Avaliação: ${review.rating}/5\n`;
+                            reviewsText += `Comentário: ${review.comment}\n`;
+                            reviewsText += `Data: ${new Date(review.date).toLocaleString()}\n\n`;
+                        });
+                    } else {
+                        reviewsText += 'Nenhuma avaliação pendente.';
+                    }
+                    
+                    showResult(resultDiv, reviewsText, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao buscar avaliações pendentes: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function approveReview() {
+            const reviewId = document.getElementById('reviewIdApprove').value;
+            const resultDiv = document.getElementById('moderationResult');
+
+            if (!reviewId) {
+                showResult(resultDiv, 'Por favor, digite o ID da avaliação.', 'error');
+                return;
+            }
+
+            if (!authToken) {
+                showResult(resultDiv, 'Por favor, faça login primeiro.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Reviews/${reviewId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const review = await response.json();
+                    showResult(resultDiv, `Avaliação ${reviewId} aprovada com sucesso!\n\nStatus: ${review.isApproved ? 'Aprovada' : 'Pendente'}`, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao aprovar avaliação: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function rejectReview() {
+            const reviewId = document.getElementById('reviewIdApprove').value;
+            const resultDiv = document.getElementById('moderationResult');
+
+            if (!reviewId) {
+                showResult(resultDiv, 'Por favor, digite o ID da avaliação.', 'error');
+                return;
+            }
+
+            if (!authToken) {
+                showResult(resultDiv, 'Por favor, faça login primeiro.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/Reviews/${reviewId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const review = await response.json();
+                    showResult(resultDiv, `Avaliação ${reviewId} rejeitada.\n\nStatus: ${review.isApproved ? 'Aprovada' : 'Rejeitada'}`, 'success');
+                } else {
+                    const errorData = await response.text();
+                    showResult(resultDiv, `Erro ao rejeitar avaliação: ${response.status}\n${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        function showResult(element, message, type) {
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

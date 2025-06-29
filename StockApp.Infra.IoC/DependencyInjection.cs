@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,10 +37,12 @@ namespace StockApp.Infra.IoC
            
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IInventoryService, InventoryService>();
             services.AddScoped<IJustInTimeInventoryService, JustInTimeInventoryService>();
+            services.AddScoped<IReviewService, ReviewService>();
 
 
             services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
