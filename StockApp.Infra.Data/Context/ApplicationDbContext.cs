@@ -10,7 +10,7 @@ namespace StockApp.Infra.Data.Context
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         { }
         //sqlservericoma.database.windows.net
@@ -19,7 +19,8 @@ namespace StockApp.Infra.Data.Context
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<SupplierContract> SupplierContracts { get; set; }
         public DbSet<SupplierEvaluation> SupplierEvaluations { get; set; }
-       
+        public DbSet<Purchase> Purchases { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
