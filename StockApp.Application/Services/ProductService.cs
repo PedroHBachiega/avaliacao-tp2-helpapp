@@ -93,5 +93,60 @@ namespace StockApp.Application.Services
             var productEntity = _mapper.Map<Product>(productDto);
             await _productRepository.Update(productEntity);
         }
+
+        public async Task<ProductComparisonDTO> CompareProductsAsync(List<int> productIds)
+        {
+            if (productIds == null || productIds.Count < 2)
+                throw new ArgumentException("É necessário pelo menos 2 produtos para comparação");
+
+            if (productIds.Count > 10)
+                throw new ArgumentException("Máximo de 10 produtos podem ser comparados por vez");
+
+            var products = new List<ProductDTO>();
+            
+            foreach (var id in productIds)
+            {
+                var product = await GetProductById(id);
+                if (product != null)
+                {
+                    products.Add(product);
+                }
+            }
+
+            if (products.Count < 2)
+                throw new ArgumentException("Produtos não encontrados ou insuficientes para comparação");
+
+            var summary = new ProductComparisonSummaryDTO
+            {
+                TotalProductsCompared = products.Count,
+                HighestPrice = products.Max(p => p.Price),
+                LowestPrice = products.Min(p => p.Price),
+                AveragePrice = products.Average(p => p.Price),
+                HighestStock = products.Max(p => p.Stock),
+                LowestStock = products.Min(p => p.Stock),
+                AverageStock = products.Average(p => p.Stock),
+                MostExpensive = products.OrderByDescending(p => p.Price).First(),
+                Cheapest = products.OrderBy(p => p.Price).First(),
+                HighestStockProduct = products.OrderByDescending(p => p.Stock).First(),
+                LowestStockProduct = products.OrderBy(p => p.Stock).First()
+            };
+
+            summary.PriceDifference = summary.HighestPrice - summary.LowestPrice;
+            summary.StockDifference = summary.HighestStock - summary.LowestStock;
+
+            var categoryGroups = products.GroupBy(p => p.Category?.Name)
+                .Where(g => g.Key != null && g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+            
+            summary.CommonCategories = categoryGroups;
+
+            return new ProductComparisonDTO
+            {
+                Products = products,
+                Summary = summary,
+                ComparedAt = DateTime.UtcNow
+            };
+        }
     }
 }

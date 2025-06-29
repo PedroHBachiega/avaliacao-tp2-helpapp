@@ -219,4 +219,68 @@ public class ProductsController : ControllerBase
 
         return Ok(new { message = "Importação concluída com sucesso." });
     }
+
+    [HttpPost("compare")]
+    public async Task<ActionResult<ProductComparisonDTO>> CompareProducts([FromBody] ProductComparisonRequestDTO request)
+    {
+        if (request?.ProductIds == null || request.ProductIds.Count < 2)
+        {
+            return BadRequest("É necessário pelo menos 2 produtos para comparação.");
+        }
+
+        if (request.ProductIds.Count > 10)
+        {
+            return BadRequest("Máximo de 10 produtos podem ser comparados por vez.");
+        }
+
+        try
+        {
+            var comparison = await _productService.CompareProductsAsync(request.ProductIds);
+            return Ok(comparison);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erro interno do servidor ao comparar produtos.");
+        }
+    }
+
+    [HttpGet("compare/category/{categoryId}")]
+    public async Task<ActionResult<ProductComparisonDTO>> CompareProductsByCategory(int categoryId, [FromQuery] int limit = 5)
+    {
+        if (limit < 2) limit = 2;
+        if (limit > 10) limit = 10;
+
+        try
+        {
+            var searchParams = new ProductSearchDTO
+            {
+                PageNumber = 1,
+                PageSize = limit,
+                Filters = new ProductFilterDTO
+                {
+                    CategoryId = categoryId
+                }
+            };
+
+            var categoryProducts = await _productService.GetProductsWithFiltersAsync(searchParams);
+            
+            if (categoryProducts.Data.Count() < 2)
+            {
+                return BadRequest("Categoria não possui produtos suficientes para comparação.");
+            }
+
+            var productIds = categoryProducts.Data.Select(p => p.Id).ToList();
+            var comparison = await _productService.CompareProductsAsync(productIds);
+            
+            return Ok(comparison);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erro interno do servidor ao comparar produtos da categoria.");
+        }
+    }
 }
