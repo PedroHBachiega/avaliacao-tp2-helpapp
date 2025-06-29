@@ -19,6 +19,13 @@ namespace StockApp.Application.Mappings
 
             CreateMap<SupplierEvaluation, SupplierEvaluationDto>().ReverseMap();
             CreateMap<SupplierContract, SupplierContractDto>().ReverseMap();
+            
+            CreateMap<Contract, ContractDto>()
+                .ForMember(dest => dest.DaysUntilExpiration, opt => opt.MapFrom(src => (src.EndDate - DateTime.Now).Days))
+                .ForMember(dest => dest.IsNearExpiration, opt => opt.MapFrom(src => (src.EndDate - DateTime.Now).Days <= 30))
+                .ForMember(dest => dest.IsExpired, opt => opt.MapFrom(src => src.EndDate < DateTime.Now))
+                .ReverseMap();
+            CreateMap<CreateContractDto, Contract>();
 
             CreateMap<Review, ReviewDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
