@@ -44,6 +44,7 @@ namespace StockApp.Infra.IoC
             services.AddScoped<IJustInTimeInventoryService, JustInTimeInventoryService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<ITaxService, TaxService>();
+            services.AddScoped<IReportService, ReportService>();
             services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
             
             var myhandlers = AppDomain.CurrentDomain.Load("StockApp.Application");
