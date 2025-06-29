@@ -18,5 +18,6 @@ namespace StockApp.Application.Interfaces
         Task Add(ProductDTO productDto);
         Task Update(ProductDTO productDto);
         Task Remove(int? id);
+        Task<ProductComparisonDTO> CompareProductsAsync(List<int> productIds);
     }
 }

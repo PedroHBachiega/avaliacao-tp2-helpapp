@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Comparação de Produtos - StockApp</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .section h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .product-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .product-item:hover {
+            background-color: #e9ecef;
+        }
+        .product-item.selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        .selected-products {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .comparison-summary {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .comparison-summary h3 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste de Comparação de Produtos</h1>
+        
+        <!-- Seção de Login -->
+        <div class="section">
+            <h2>1. Autenticação</h2>
+            <div class="form-group">
+                <label for="username">Usuário:</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" value="admin@admin.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" placeholder="Digite sua senha" value="Admin@123">
+            </div>
+            <button onclick="login()">Fazer Login</button>
+            <div id="loginResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Seção de Produtos Disponíveis -->
+        <div class="section">
+            <h2>2. Produtos Disponíveis</h2>
+            <button onclick="loadProducts()" class="btn-secondary">Carregar Produtos</button>
+            <div id="productsList" class="product-list"></div>
+            <div id="selectedProducts" class="selected-products" style="display: none;">
+                <strong>Produtos Selecionados:</strong>
+                <div id="selectedProductsText"></div>
+                <button onclick="clearSelection()">Limpar Seleção</button>
+            </div>
+        </div>
+
+        <!-- Seção de Comparação Manual -->
+        <div class="section">
+            <h2>3. Comparação Manual de Produtos</h2>
+            <div class="form-group">
+                <label for="productIds">IDs dos Produtos (separados por vírgula):</label>
+                <input type="text" id="productIds" placeholder="Ex: 1,2,3">
+            </div>
+            <button onclick="compareProducts()">Comparar Produtos</button>
+            <div id="comparisonResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Seção de Comparação por Categoria -->
+        <div class="section">
+            <h2>4. Comparação por Categoria</h2>
+            <div class="form-group">
+                <label for="categoryId">ID da Categoria:</label>
+                <input type="number" id="categoryId" placeholder="Digite o ID da categoria" value="1">
+            </div>
+            <div class="form-group">
+                <label for="limit">Limite de Produtos:</label>
+                <input type="number" id="limit" placeholder="Máximo 10" value="5" min="2" max="10">
+            </div>
+            <button onclick="compareByCategory()">Comparar por Categoria</button>
+            <div id="categoryComparisonResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        let selectedProductIds = [];
+        let allProducts = [];
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch('/api/Token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = 'Login realizado com sucesso!\nToken: ' + authToken.substring(0, 50) + '...';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Erro no login: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Erro na requisição: ' + error.message;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        async function loadProducts() {
+            if (!authToken) {
+                alert('Faça login primeiro!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Products', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                if (response.ok) {
+                    allProducts = await response.json();
+                    displayProducts(allProducts);
+                } else {
+                    alert('Erro ao carregar produtos: ' + response.status);
+                }
+            } catch (error) {
+                alert('Erro na requisição: ' + error.message);
+            }
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('productsList');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.innerHTML = `
+                    <strong>${product.name}</strong><br>
+                    <small>ID: ${product.id}</small><br>
+                    <small>Preço: R$ ${product.price.toFixed(2)}</small><br>
+                    <small>Estoque: ${product.stock}</small>
+                `;
+                productDiv.onclick = () => toggleProductSelection(product.id, productDiv);
+                container.appendChild(productDiv);
+            });
+        }
+
+        function toggleProductSelection(productId, element) {
+            const index = selectedProductIds.indexOf(productId);
+            
+            if (index > -1) {
+                selectedProductIds.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                if (selectedProductIds.length >= 10) {
+                    alert('Máximo de 10 produtos podem ser selecionados');
+                    return;
+                }
+                selectedProductIds.push(productId);
+                element.classList.add('selected');
+            }
+
+            updateSelectedProductsDisplay();
+            document.getElementById('productIds').value = selectedProductIds.join(',');
+        }
+
+        function updateSelectedProductsDisplay() {
+            const container = document.getElementById('selectedProducts');
+            const textContainer = document.getElementById('selectedProductsText');
+            
+            if (selectedProductIds.length > 0) {
+                container.style.display = 'block';
+                textContainer.textContent = `${selectedProductIds.length} produtos selecionados: [${selectedProductIds.join(', ')}]`;
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function clearSelection() {
+            selectedProductIds = [];
+            document.querySelectorAll('.product-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            updateSelectedProductsDisplay();
+            document.getElementById('productIds').value = '';
+        }
+
+        async function compareProducts() {
+            if (!authToken) {
+                alert('Faça login primeiro!');
+                return;
+            }
+
+            const productIdsInput = document.getElementById('productIds').value;
+            const resultDiv = document.getElementById('comparisonResult');
+
+            if (!productIdsInput.trim()) {
+                alert('Digite os IDs dos produtos para comparar!');
+                return;
+            }
+
+            const productIds = productIdsInput.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+
+            if (productIds.length < 2) {
+                alert('É necessário pelo menos 2 produtos para comparação!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Products/compare', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify({
+                        productIds: productIds
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayComparisonResult(data, resultDiv);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Erro na comparação: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Erro na requisição: ' + error.message;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        async function compareByCategory() {
+            if (!authToken) {
+                alert('Faça login primeiro!');
+                return;
+            }
+
+            const categoryId = document.getElementById('categoryId').value;
+            const limit = document.getElementById('limit').value;
+            const resultDiv = document.getElementById('categoryComparisonResult');
+
+            if (!categoryId) {
+                alert('Digite o ID da categoria!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/Products/compare/category/${categoryId}?limit=${limit}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayComparisonResult(data, resultDiv);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Erro na comparação: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Erro na requisição: ' + error.message;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        function displayComparisonResult(data, resultDiv) {
+            resultDiv.className = 'result success';
+            
+            const summary = data.summary;
+            const products = data.products;
+            
+            let html = `
+                <div class="comparison-summary">
+                    <h3>📊 Resumo da Comparação</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total de Produtos:</div>
+                            <div class="stat-value">${summary.totalProductsCompared}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Maior Preço:</div>
+                            <div class="stat-value">R$ ${summary.highestPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Menor Preço:</div>
+                            <div class="stat-value">R$ ${summary.lowestPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Preço Médio:</div>
+                            <div class="stat-value">R$ ${summary.averagePrice.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Diferença de Preço:</div>
+                            <div class="stat-value">R$ ${summary.priceDifference.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Maior Estoque:</div>
+                            <div class="stat-value">${summary.highestStock}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Menor Estoque:</div>
+                            <div class="stat-value">${summary.lowestStock}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Estoque Médio:</div>
+                            <div class="stat-value">${summary.averageStock.toFixed(1)}</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🏆 Destaques:</h4>
+                    <p><strong>Mais Caro:</strong> ${summary.mostExpensive.name} - R$ ${summary.mostExpensive.price.toFixed(2)}</p>
+                    <p><strong>Mais Barato:</strong> ${summary.cheapest.name} - R$ ${summary.cheapest.price.toFixed(2)}</p>
+                    <p><strong>Maior Estoque:</strong> ${summary.highestStockProduct.name} - ${summary.highestStockProduct.stock} unidades</p>
+                    <p><strong>Menor Estoque:</strong> ${summary.lowestStockProduct.name} - ${summary.lowestStockProduct.stock} unidades</p>
+                    
+                    ${summary.commonCategories.length > 0 ? `<p><strong>Categorias Comuns:</strong> ${summary.commonCategories.join(', ')}</p>` : ''}
+                </div>
+                
+                <h4>📋 Produtos Comparados:</h4>
+            `;
+            
+            products.forEach(product => {
+                html += `
+                    <div class="stat-item" style="margin-bottom: 10px;">
+                        <strong>${product.name}</strong> (ID: ${product.id})<br>
+                        <small>${product.description}</small><br>
+                        Preço: R$ ${product.price.toFixed(2)} | Estoque: ${product.stock}<br>
+                        ${product.category ? `Categoria: ${product.category.name}` : 'Sem categoria'}
+                    </div>
+                `;
+            });
+            
+            html += `<br><small>Comparação realizada em: ${new Date(data.comparedAt).toLocaleString('pt-BR')}</small>`;
+            
+            resultDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
