@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Automático</title>
+</head>
+<body>
+    <h1>Teste Automático da API</h1>
+    <div>
+        <h2>Resultado do Teste de Tipos de Relatórios</h2>
+        <pre id="typesResult">Carregando...</pre>
+    </div>
+
+    <script>
+        // Executa automaticamente ao carregar a página
+        window.onload = function() {
+            const resultElement = document.getElementById('typesResult');
+            
+            // URL absoluta para o endpoint
+            const apiUrl = window.location.origin + '/api/CustomReports/types';
+            console.log('Fazendo requisição para:', apiUrl);
+            
+            // Adiciona um timestamp para evitar cache
+            const urlWithTimestamp = apiUrl + '?t=' + new Date().getTime();
+            
+            // Faz a requisição com opções explícitas
+            fetch(urlWithTimestamp, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store'
+            })
+            .then(response => {
+                console.log('Status da resposta:', response.status);
+                console.log('Headers:', [...response.headers.entries()]);
+                
+                if (!response.ok) {
+                    throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dados recebidos:', data);
+                resultElement.textContent = 'SUCESSO! Dados recebidos:\n' + JSON.stringify(data, null, 2);
+                
+                // Adiciona os dados ao DOM para visualização
+                if (data && Array.isArray(data)) {
+                    const list = document.createElement('ul');
+                    data.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${item.id}: ${item.name}`;
+                        list.appendChild(listItem);
+                    });
+                    document.body.appendChild(list);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                resultElement.textContent = 'ERRO: ' + error.message;
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+        .test-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Debug API de Relatórios</h1>
+    
+    <div class="test-section">
+        <h2>Teste 1: GET /api/CustomReports/types</h2>
+        <div id="test1-status">Carregando...</div>
+        <pre id="test1-result"></pre>
+    </div>
+
+    <script>
+        // Função para executar um teste e mostrar o resultado
+        function runTest(testId, url, options = {}) {
+            const statusElement = document.getElementById(`${testId}-status`);
+            const resultElement = document.getElementById(`${testId}-result`);
+            
+            statusElement.textContent = 'Executando teste...';
+            statusElement.className = '';
+            
+            // Adiciona um timestamp para evitar cache
+            const urlWithTimestamp = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+            
+            // Configuração padrão
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store'
+            };
+            
+            // Mescla as opções padrão com as opções fornecidas
+            const fetchOptions = { ...defaultOptions, ...options };
+            
+            console.log(`Executando ${testId} para ${urlWithTimestamp}`);
+            console.log('Opções:', fetchOptions);
+            
+            fetch(urlWithTimestamp, fetchOptions)
+                .then(response => {
+                    console.log(`${testId} - Status:`, response.status, response.statusText);
+                    console.log(`${testId} - Headers:`, [...response.headers.entries()]);
+                    
+                    // Registra informações da resposta
+                    const responseInfo = `Status: ${response.status} ${response.statusText}\n\nHeaders:\n`;
+                    const headerInfo = [...response.headers.entries()]
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                    
+                    if (!response.ok) {
+                        throw new Error(`${responseInfo}${headerInfo}`);
+                    }
+                    
+                    return response.text().then(text => {
+                        try {
+                            // Tenta analisar como JSON
+                            return { text, json: JSON.parse(text) };
+                        } catch (e) {
+                            // Se não for JSON, retorna apenas o texto
+                            return { text, json: null };
+                        }
+                    });
+                })
+                .then(({ text, json }) => {
+                    statusElement.textContent = 'SUCESSO!';
+                    statusElement.className = 'success';
+                    
+                    if (json) {
+                        console.log(`${testId} - Dados JSON:`, json);
+                        resultElement.textContent = `Resposta JSON:\n${JSON.stringify(json, null, 2)}`;
+                    } else {
+                        console.log(`${testId} - Resposta texto:`, text);
+                        resultElement.textContent = `Resposta texto:\n${text}`;
+                    }
+                })
+                .catch(error => {
+                    console.error(`${testId} - Erro:`, error);
+                    statusElement.textContent = 'ERRO!';
+                    statusElement.className = 'error';
+                    resultElement.textContent = error.message || error;
+                });
+        }
+        
+        // Executa o teste quando a página carrega
+        window.onload = function() {
+            const baseUrl = window.location.origin;
+            runTest('test1', `${baseUrl}/api/CustomReports/types`);
+        };
+    </script>
+</body>
+</html>

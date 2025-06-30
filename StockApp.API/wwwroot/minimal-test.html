@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Mínimo</title>
+</head>
+<body>
+    <h1>Teste Mínimo da API</h1>
+    <button id="testButton">Testar API</button>
+    <pre id="result">Resultado aparecerá aqui...</pre>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = 'Carregando...';
+            
+            // Teste absoluto com URL completa
+            const apiUrl = window.location.origin + '/api/CustomReports/types';
+            console.log('Fazendo requisição para:', apiUrl);
+            
+            fetch(apiUrl)
+                .then(response => {
+                    console.log('Status da resposta:', response.status);
+                    console.log('Headers:', [...response.headers.entries()]);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Dados recebidos:', data);
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    resultElement.textContent = 'Erro: ' + error.message;
+                });
+        });
+    </script>
+</body>
+</html>

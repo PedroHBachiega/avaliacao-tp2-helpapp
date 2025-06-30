@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Todos os Endpoints</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .pending { color: orange; font-weight: bold; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .test-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        button { padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        h1, h2 { color: #333; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Todos os Endpoints da API de Relatórios</h1>
+    
+    <div class="controls">
+        <button id="run-all-tests">Executar Todos os Testes</button>
+        <p>Clique no botão acima para testar todos os endpoints ou nos botões individuais abaixo para testar endpoints específicos.</p>
+    </div>
+    
+    <div class="test-grid">
+        <div class="test-section">
+            <h2>GET /api/CustomReports/types</h2>
+            <button onclick="runTest('types', '/api/CustomReports/types')">Testar</button>
+            <div id="types-status" class="pending">Pendente</div>
+            <pre id="types-result">Clique em Testar para executar</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>GET /api/CustomReports/parameters/vendas</h2>
+            <button onclick="runTest('params-vendas', '/api/CustomReports/parameters/vendas')">Testar</button>
+            <div id="params-vendas-status" class="pending">Pendente</div>
+            <pre id="params-vendas-result">Clique em Testar para executar</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>GET /api/CustomReports/parameters/estoque</h2>
+            <button onclick="runTest('params-estoque', '/api/CustomReports/parameters/estoque')">Testar</button>
+            <div id="params-estoque-status" class="pending">Pendente</div>
+            <pre id="params-estoque-result">Clique em Testar para executar</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>GET /api/CustomReports/parameters/categoria</h2>
+            <button onclick="runTest('params-categoria', '/api/CustomReports/parameters/categoria')">Testar</button>
+            <div id="params-categoria-status" class="pending">Pendente</div>
+            <pre id="params-categoria-result">Clique em Testar para executar</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>GET /api/CustomReports/parameters/produto</h2>
+            <button onclick="runTest('params-produto', '/api/CustomReports/parameters/produto')">Testar</button>
+            <div id="params-produto-status" class="pending">Pendente</div>
+            <pre id="params-produto-result">Clique em Testar para executar</pre>
+        </div>
+        
+        <div class="test-section">
+            <h2>POST /api/CustomReports/generate</h2>
+            <button onclick="runTest('generate', '/api/CustomReports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    reportType: 'vendas',
+                    startDate: new Date().toISOString(),
+                    endDate: new Date().toISOString()
+                })
+            })">Testar</button>
+            <div id="generate-status" class="pending">Pendente</div>
+            <pre id="generate-result">Clique em Testar para executar</pre>
+        </div>
+    </div>
+
+    <script>
+        // Função para executar um teste e mostrar o resultado
+        function runTest(testId, url, options = {}) {
+            const statusElement = document.getElementById(`${testId}-status`);
+            const resultElement = document.getElementById(`${testId}-result`);
+            
+            statusElement.textContent = 'Executando...';
+            statusElement.className = 'pending';
+            
+            // Adiciona um timestamp para evitar cache
+            const urlWithTimestamp = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+            
+            // Configuração padrão
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store'
+            };
+            
+            // Mescla as opções padrão com as opções fornecidas
+            const fetchOptions = { ...defaultOptions, ...options };
+            
+            console.log(`Executando ${testId} para ${urlWithTimestamp}`);
+            console.log('Opções:', fetchOptions);
+            
+            return fetch(urlWithTimestamp, fetchOptions)
+                .then(response => {
+                    console.log(`${testId} - Status:`, response.status, response.statusText);
+                    console.log(`${testId} - Headers:`, [...response.headers.entries()]);
+                    
+                    // Registra informações da resposta
+                    const responseInfo = `Status: ${response.status} ${response.statusText}\n\nHeaders:\n`;
+                    const headerInfo = [...response.headers.entries()]
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                    
+                    if (!response.ok) {
+                        throw new Error(`${responseInfo}${headerInfo}`);
+                    }
+                    
+                    return response.text().then(text => {
+                        try {
+                            // Tenta analisar como JSON
+                            return { text, json: JSON.parse(text) };
+                        } catch (e) {
+                            // Se não for JSON, retorna apenas o texto
+                            return { text, json: null };
+                        }
+                    });
+                })
+                .then(({ text, json }) => {
+                    statusElement.textContent = 'SUCESSO!';
+                    statusElement.className = 'success';
+                    
+                    if (json) {
+                        console.log(`${testId} - Dados JSON:`, json);
+                        resultElement.textContent = `Resposta JSON:\n${JSON.stringify(json, null, 2)}`;
+                    } else {
+                        console.log(`${testId} - Resposta texto:`, text);
+                        resultElement.textContent = `Resposta texto:\n${text}`;
+                    }
+                    return true;
+                })
+                .catch(error => {
+                    console.error(`${testId} - Erro:`, error);
+                    statusElement.textContent = 'ERRO!';
+                    statusElement.className = 'error';
+                    resultElement.textContent = error.message || error;
+                    return false;
+                });
+        }
+        
+        // Função para executar todos os testes em sequência
+        async function runAllTests() {
+            const tests = [
+                { id: 'types', url: '/api/CustomReports/types' },
+                { id: 'params-vendas', url: '/api/CustomReports/parameters/vendas' },
+                { id: 'params-estoque', url: '/api/CustomReports/parameters/estoque' },
+                { id: 'params-categoria', url: '/api/CustomReports/parameters/categoria' },
+                { id: 'params-produto', url: '/api/CustomReports/parameters/produto' },
+                { 
+                    id: 'generate', 
+                    url: '/api/CustomReports/generate',
+                    options: {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            reportType: 'vendas',
+                            startDate: new Date().toISOString(),
+                            endDate: new Date().toISOString()
+                        })
+                    }
+                }
+            ];
+            
+            for (const test of tests) {
+                await runTest(test.id, test.url, test.options || {});
+                // Pequena pausa entre os testes
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+        
+        // Adiciona o evento de clique ao botão de executar todos os testes
+        document.getElementById('run-all-tests').addEventListener('click', runAllTests);
+    </script>
+</body>
+</html>

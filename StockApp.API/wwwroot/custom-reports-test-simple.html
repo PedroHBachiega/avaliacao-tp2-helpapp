@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples de Relatórios</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { border: 1px solid #ddd; border-radius: 5px; padding: 20px; margin-bottom: 20px; }
+        .btn { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background-color: #0069d9; }
+        select, input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .report-data { margin-top: 20px; }
+        .data-item { display: flex; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .data-key { font-weight: bold; width: 40%; }
+        .data-value { width: 60%; }
+        #error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste Simples de Relatórios Personalizados</h1>
+        
+        <div class="card">
+            <h2>Tipos de Relatórios Disponíveis</h2>
+            <button id="loadTypes" class="btn">Carregar Tipos</button>
+            <div id="typesResult" style="margin-top: 15px;"></div>
+            <div id="error"></div>
+        </div>
+
+        <div class="card">
+            <h2>Parâmetros para Relatório de Vendas</h2>
+            <button id="loadVendasParams" class="btn">Carregar Parâmetros</button>
+            <div id="paramsResult" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loadTypes').addEventListener('click', function() {
+            document.getElementById('error').textContent = '';
+            document.getElementById('typesResult').innerHTML = 'Carregando...';
+            
+            fetch('/api/CustomReports/types')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultDiv = document.getElementById('typesResult');
+                    resultDiv.innerHTML = '<h3>Tipos de Relatórios:</h3>';
+                    
+                    const ul = document.createElement('ul');
+                    data.forEach(type => {
+                        const li = document.createElement('li');
+                        li.textContent = `${type.name} (ID: ${type.id})`;
+                        ul.appendChild(li);
+                    });
+                    
+                    resultDiv.appendChild(ul);
+                })
+                .catch(error => {
+                    document.getElementById('error').textContent = `Erro ao carregar tipos: ${error.message}`;
+                    document.getElementById('typesResult').innerHTML = '';
+                });
+        });
+
+        document.getElementById('loadVendasParams').addEventListener('click', function() {
+            document.getElementById('paramsResult').innerHTML = 'Carregando...';
+            
+            fetch('/api/CustomReports/parameters/vendas')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultDiv = document.getElementById('paramsResult');
+                    resultDiv.innerHTML = '<h3>Parâmetros:</h3>';
+                    
+                    const ul = document.createElement('ul');
+                    data.forEach(param => {
+                        const li = document.createElement('li');
+                        li.textContent = `${param.name} (ID: ${param.id}, Tipo: ${param.type})`;
+                        ul.appendChild(li);
+                    });
+                    
+                    resultDiv.appendChild(ul);
+                })
+                .catch(error => {
+                    document.getElementById('paramsResult').innerHTML = `Erro ao carregar parâmetros: ${error.message}`;
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Relatórios Personalizados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .report-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .report-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .report-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .report-data {
+            margin-top: 20px;
+        }
+        .data-item {
+            display: flex;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .data-key {
+            font-weight: bold;
+            width: 40%;
+        }
+        .data-value {
+            width: 60%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Sistema de Relatórios Personalizados</h1>
+        
+        <div class="alert alert-info">
+            <button id="forceLoadTypes" class="btn btn-primary">Forçar Carregamento de Tipos</button>
+            <span id="loadStatus">Clique no botão para carregar os tipos de relatório manualmente.</span>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Gerar Relatório Personalizado</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="reportForm">
+                            <div class="mb-3">
+                                <label for="reportType" class="form-label">Tipo de Relatório</label>
+                                <select class="form-select" id="reportType" required>
+                                    <option value="" selected disabled>Selecione um tipo</option>
+                                    <!-- Opções serão carregadas via JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div id="dynamicParameters">
+                                <!-- Parâmetros dinâmicos serão adicionados aqui -->
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Gerar Relatório</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Relatório Gerado</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="reportOutput" class="report-container" style="display: none;">
+                            <div class="report-title" id="reportTitle">Título do Relatório</div>
+                            <div class="report-date" id="reportDate">Gerado em: 01/01/2023</div>
+                            <div class="report-data" id="reportData">
+                                <!-- Dados do relatório serão adicionados aqui -->
+                            </div>
+                        </div>
+                        <div id="noReport" class="text-center py-5">
+                            <p class="text-muted">Nenhum relatório gerado ainda.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para carregar tipos de relatórios
+        function loadReportTypes() {
+            const loadStatus = document.getElementById('loadStatus');
+            loadStatus.textContent = 'Carregando tipos de relatório...';
+            
+            console.log('Iniciando carregamento de tipos de relatórios...');
+            // Adicionar timestamp para evitar cache
+            const url = '/api/CustomReports/types?t=' + new Date().getTime();
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store'
+            })
+            .then(response => {
+                console.log('Resposta recebida:', response.status, response.statusText);
+                if (!response.ok) {
+                    throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dados recebidos:', data);
+                const select = document.getElementById('reportType');
+                
+                // Limpar opções existentes
+                select.innerHTML = '<option value="" selected disabled>Selecione um tipo</option>';
+                
+                if (data && Array.isArray(data)) {
+                    data.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type;
+                        
+                        // Formatar o nome do relatório para exibição
+                        let displayName = type.charAt(0).toUpperCase() + type.slice(1);
+                        displayName = 'Relatório de ' + displayName;
+                        
+                        option.textContent = displayName;
+                        select.appendChild(option);
+                    });
+                    console.log('Opções adicionadas ao select:', data.length);
+                    loadStatus.textContent = `${data.length} tipos de relatório carregados com sucesso!`;
+                    loadStatus.style.color = 'green';
+                } else {
+                    console.error('Dados recebidos não são um array:', data);
+                    loadStatus.textContent = 'Erro: Os dados recebidos não são um array válido.';
+                    loadStatus.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar tipos de relatórios:', error);
+                loadStatus.textContent = 'Erro ao carregar tipos de relatórios: ' + error.message;
+                loadStatus.style.color = 'red';
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Página carregada, iniciando carregamento automático...');
+            
+            // Carregar tipos de relatórios automaticamente
+            loadReportTypes();
+            
+            // Adicionar evento ao botão de forçar carregamento
+            document.getElementById('forceLoadTypes').addEventListener('click', function() {
+                loadReportTypes();
+            });
+            
+            // Evento de mudança no tipo de relatório
+            document.getElementById('reportType').addEventListener('change', function() {
+                const reportType = this.value;
+                if (reportType) {
+                    loadReportParameters(reportType);
+                }
+            });
+            
+            // Evento de envio do formulário
+            document.getElementById('reportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateReport();
+            });
+        });
+        
+        function loadReportParameters(reportType) {
+            fetch(`/api/CustomReports/parameters/${reportType}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('dynamicParameters');
+                    container.innerHTML = '';
+                    
+                    data.forEach(param => {
+                        const div = document.createElement('div');
+                        div.className = 'mb-3';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.setAttribute('for', param.id);
+                        label.textContent = param.name;
+                        
+                        let input;
+                        
+                        switch(param.type) {
+                            case 'date':
+                                input = document.createElement('input');
+                                input.type = 'date';
+                                input.className = 'form-control';
+                                input.id = param.id;
+                                input.name = param.id;
+                                break;
+                            case 'select':
+                                input = document.createElement('select');
+                                input.className = 'form-select';
+                                input.id = param.id;
+                                input.name = param.id;
+                                
+                                const defaultOption = document.createElement('option');
+                                defaultOption.value = '';
+                                defaultOption.textContent = `Selecione ${param.name}`;
+                                input.appendChild(defaultOption);
+                                
+                                if (param.options) {
+                                    param.options.forEach(option => {
+                                        const optionEl = document.createElement('option');
+                                        optionEl.value = option;
+                                        optionEl.textContent = option;
+                                        input.appendChild(optionEl);
+                                    });
+                                }
+                                break;
+                            default:
+                                input = document.createElement('input');
+                                input.type = 'text';
+                                input.className = 'form-control';
+                                input.id = param.id;
+                                input.name = param.id;
+                        }
+                        
+                        div.appendChild(label);
+                        div.appendChild(input);
+                        container.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar parâmetros:', error));
+        }
+        
+        function generateReport() {
+            const form = document.getElementById('reportForm');
+            const formData = new FormData(form);
+            const reportType = document.getElementById('reportType').value;
+            
+            const parameters = {
+                reportType: reportType
+            };
+            
+            // Converter FormData para objeto
+            for (const [key, value] of formData.entries()) {
+                if (key !== 'reportType' && value) {
+                    // Converter datas para formato ISO
+                    if (document.getElementById(key).type === 'date' && value) {
+                        parameters[key] = new Date(value).toISOString();
+                    } else if (key === 'categoryId' || key === 'productId') {
+                        // Converter IDs para números
+                        parameters[key] = parseInt(value, 10) || null;
+                    } else {
+                        parameters[key] = value;
+                    }
+                }
+            }
+            
+            fetch('/api/CustomReports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(parameters)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao gerar relatório');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayReport(data);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao gerar relatório. Verifique o console para mais detalhes.');
+            });
+        }
+        
+        function displayReport(report) {
+            document.getElementById('noReport').style.display = 'none';
+            document.getElementById('reportOutput').style.display = 'block';
+            
+            document.getElementById('reportTitle').textContent = report.title;
+            document.getElementById('reportDate').textContent = `Gerado em: ${new Date(report.generatedAt).toLocaleString()}`;
+            
+            const dataContainer = document.getElementById('reportData');
+            dataContainer.innerHTML = '';
+            
+            if (report.description) {
+                const descDiv = document.createElement('div');
+                descDiv.className = 'mb-4 text-muted';
+                descDiv.textContent = report.description;
+                dataContainer.appendChild(descDiv);
+            }
+            
+            report.data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'data-item';
+                
+                const keyDiv = document.createElement('div');
+                keyDiv.className = 'data-key';
+                keyDiv.textContent = item.key;
+                
+                const valueDiv = document.createElement('div');
+                valueDiv.className = 'data-value';
+                valueDiv.textContent = item.value;
+                
+                div.appendChild(keyDiv);
+                div.appendChild(valueDiv);
+                dataContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
