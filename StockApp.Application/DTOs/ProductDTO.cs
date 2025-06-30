@@ -46,6 +46,7 @@ namespace StockApp.Application.DTOs
         [DisplayName("Categories")]
         public int CategoryId { get; set; }
 
-
+        public decimal? DiscountPercentage { get; set; }
+        public string? PromotionDescription { get; set; }
     }
 }

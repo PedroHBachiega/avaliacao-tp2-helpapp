@@ -18,6 +18,8 @@ namespace StockApp.Domain.Entities
         public int MinimumStockLevel { get; set; }
         public string Image { get; set; }
         public int CategoryId { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public string? PromotionDescription { get; set; }
 
         #endregion
 
