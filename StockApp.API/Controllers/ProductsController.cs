@@ -9,6 +9,8 @@ using StockApp.Domain.Entities;
 using System.Security.Claims;
 using System;
 using System.Text.Json;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace StockApp.API.Controllers;
@@ -83,6 +85,138 @@ public class ProductsController : ControllerBase
         var filteredProducts = await _productService.GetProductsWithFiltersAsync(searchParameters);
         return Ok(filteredProducts);
     }
+
+    /// <summary>
+    /// Busca avançada de produtos com múltiplos filtros e opções de ordenação
+    /// </summary>
+    /// <param name="searchParameters">Parâmetros de busca avançada</param>
+    /// <returns>Lista paginada de produtos filtrados</returns>
+    /// <response code="200">Retorna a lista paginada de produtos filtrados</response>
+    /// <response code="400">Parâmetros de busca inválidos</response>
+    /// <response code="401">Não autorizado</response>
+    [HttpGet("advanced-search")]
+    public async Task<ActionResult<PagedResult<ProductDTO>>> AdvancedSearch([FromQuery] AdvancedSearchDTO searchParameters)
+    {
+        try
+        {
+            if (!searchParameters.IsValid())
+            {
+                var errors = searchParameters.GetValidationErrors();
+                return BadRequest(new { 
+                    message = "Invalid search parameters",
+                    errors = errors 
+                });
+            }
+
+            var searchResults = await _productService.AdvancedSearchAsync(searchParameters);
+            
+            return Ok(new {
+                data = searchResults,
+                searchCriteria = new {
+                    searchTerm = searchParameters.SearchTerm,
+                    categoryFilter = searchParameters.CategoryId.HasValue ? new List<int> { searchParameters.CategoryId.Value } : searchParameters.CategoryIds,
+                    priceRange = new { min = searchParameters.MinPrice, max = searchParameters.MaxPrice },
+                    stockRange = new { min = searchParameters.MinStock, max = searchParameters.MaxStock },
+                    hasPromotion = searchParameters.HasPromotion,
+                    sortBy = searchParameters.SortBy,
+                    sortDirection = searchParameters.SortDirection
+                }
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Busca sugestões de produtos para autocomplete
+    /// </summary>
+    /// <param name="term">Termo de busca</param>
+    /// <param name="limit">Limite de sugestões (padrão: 10)</param>
+    /// <returns>Lista de sugestões</returns>
+    /// <response code="200">Retorna lista de sugestões</response>
+    /// <response code="401">Não autorizado</response>
+    [HttpGet("suggestions")]
+    public async Task<ActionResult<IEnumerable<object>>> GetSuggestions([FromQuery] string term, [FromQuery] int limit = 10)
+    {
+        if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+        {
+            return Ok(new List<object>());
+        }
+
+        try
+        {
+            var searchParams = new AdvancedSearchDTO
+            {
+                SearchTerm = term,
+                PageNumber = 1,
+                PageSize = limit,
+                SortBy = "name",
+                SortDirection = "asc"
+            };
+
+            var results = await _productService.AdvancedSearchAsync(searchParams);
+            
+            var suggestions = results.Items.Select(p => new {
+                id = p.Id,
+                name = p.Name,
+                price = p.Price,
+                category = p.Category?.Name,
+                stock = p.Stock
+            });
+
+            return Ok(suggestions);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error getting suggestions", details = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Obtém estatísticas de busca para dashboard
+    /// </summary>
+    /// <returns>Estatísticas dos produtos</returns>
+    /// <response code="200">Retorna estatísticas</response>
+    /// <response code="401">Não autorizado</response>
+    [HttpGet("search-stats")]
+    public async Task<ActionResult<object>> GetSearchStats()
+    {
+        try
+        {
+            var allProducts = await _productService.GetProducts();
+            var productList = allProducts.ToList();
+
+            var stats = new {
+                totalProducts = productList.Count,
+                averagePrice = productList.Any() ? productList.Average(p => p.Price) : 0,
+                totalStock = productList.Sum(p => p.Stock),
+                lowStockCount = productList.Count(p => p.Stock < 10),
+                promotionCount = productList.Count(p => p.DiscountPercentage.HasValue && p.DiscountPercentage > 0),
+                priceRange = new {
+                    min = productList.Any() ? productList.Min(p => p.Price) : 0,
+                    max = productList.Any() ? productList.Max(p => p.Price) : 0
+                },
+                stockRange = new {
+                    min = productList.Any() ? productList.Min(p => p.Stock) : 0,
+                    max = productList.Any() ? productList.Max(p => p.Stock) : 0
+                },
+                categoriesCount = productList.GroupBy(p => p.Category?.Name).Count()
+            };
+
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error getting search statistics", details = ex.Message });
+        }
+    }
+
     /// <summary>
     /// Obtém um produto específico pelo ID
     /// </summary>

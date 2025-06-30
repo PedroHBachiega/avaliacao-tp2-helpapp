@@ -24,6 +24,29 @@ namespace StockApp.Domain.Interfaces
             string? sortBy = null,
             string? sortDirection = "asc");
 
+        Task<(IEnumerable<Product> products, int totalCount)> AdvancedSearchAsync(
+            int pageNumber,
+            int pageSize,
+            string? searchTerm = null,
+            string? name = null,
+            string? description = null,
+            int? categoryId = null,
+            List<int>? categoryIds = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            int? minStock = null,
+            int? maxStock = null,
+            bool? isLowStock = null,
+            bool? hasPromotion = null,
+            decimal? minDiscountPercentage = null,
+            string? sortBy = null,
+            string? sortDirection = "asc",
+            string? secondarySortBy = null,
+            string? secondarySortDirection = "asc",
+            bool includeWithoutCategory = true,
+            bool exactMatch = false,
+            bool caseSensitive = false);
+
         Task<IEnumerable<Product>> GetAllAsync();
 
         Task<Product> GetById(int? id);
