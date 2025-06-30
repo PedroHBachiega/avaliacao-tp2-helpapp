@@ -144,14 +144,7 @@ public class ProductsController : ControllerBase
     /// <response code="200">Produto atualizado com sucesso</response>
     /// <response code="400">Dados inválidos ou ID não corresponde</response>
     /// <response code="401">Não autorizado</response>
-    [HttpPut("{id:int}", Name = "UpdateProduct")]
-    public async Task<IActionResult> Put(int id, [FromBody] ProductDTO productDto)
-    {
-        if (productDto == null || id != productDto.Id)
-            return BadRequest();
-        await _productService.Update(productDto);
-        return Ok(productDto);
-    }
+
 
     /// <summary>
     /// Remove um produto pelo ID
