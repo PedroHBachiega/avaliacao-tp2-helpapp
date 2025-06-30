@@ -8,6 +8,7 @@ using StockApp.Domain.Interfaces;
 using StockApp.Domain.Entities;
 using System.Security.Claims;
 using System;
+using System.Text.Json;
 
 
 namespace StockApp.API.Controllers;
@@ -340,6 +341,41 @@ public class ProductsController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, "Erro interno do servidor ao buscar resumo de avaliações.");
+        }
+    }
+
+   
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, [FromBody] ProductDTO productDto)
+    {
+        try
+        {
+            if (productDto == null)
+                return BadRequest("Dados de produto inválidos");
+            
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
+            if (productDto.Id != 0 && productDto.Id != id)
+                return BadRequest("Incompatibilidade entre o ID da rota e o ID do produto");
+        
+            var existingProduct = await _productService.GetProductById(id);
+            if (existingProduct == null)
+                return NotFound($"Produto com ID {id} não encontrado");
+       
+            // Atualiza o produto com novos valores usando o método existente
+            await _productService.Update(productDto);
+        
+            // Obtém o produto atualizado
+            var updatedProduct = await _productService.GetProductById(id);
+        
+            return Ok(updatedProduct);
+        }
+        catch (Exception ex)
+        {
+            // Registre a exceção aqui (adicione um logger real)
+            // _logger.LogError(ex, "Erro ao atualizar o produto {ProductId}", id);
+            return StatusCode(500, "Ocorreu um erro ao atualizar o produto");
         }
     }
 }

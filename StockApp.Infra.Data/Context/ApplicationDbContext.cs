@@ -14,6 +14,8 @@ namespace StockApp.Infra.Data.Context
             : base(options)
         { }
         //sqlservericoma.database.windows.net
+        
+        public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
