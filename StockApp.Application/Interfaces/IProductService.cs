@@ -14,6 +14,8 @@ namespace StockApp.Application.Interfaces
         
         Task<PagedResult<ProductDTO>> GetProductsWithFiltersAsync(ProductSearchDTO searchParameters);
         
+        Task<PagedResult<ProductDTO>> AdvancedSearchAsync(AdvancedSearchDTO searchParameters);
+        
         Task<ProductDTO> GetProductById(int? id);
         Task Add(ProductDTO productDto);
         Task Update(ProductDTO productDto);

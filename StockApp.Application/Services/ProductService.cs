@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace StockApp.Application.Services
 {
@@ -73,6 +74,45 @@ namespace StockApp.Application.Services
                 productDTOs, 
                 searchParameters.PageNumber, 
                 searchParameters.PageSize, 
+                totalCount);
+        }
+
+        public async Task<PagedResult<ProductDTO>> AdvancedSearchAsync(AdvancedSearchDTO searchParameters)
+        {
+            if (!searchParameters.IsValid())
+            {
+                throw new ArgumentException("Invalid search parameters: " + string.Join(", ", searchParameters.GetValidationErrors()));
+            }
+
+            var (products, totalCount) = await _productRepository.AdvancedSearchAsync(
+                searchParameters.PageNumber,
+                searchParameters.PageSize,
+                searchParameters.SearchTerm,
+                searchParameters.Name,
+                searchParameters.Description,
+                searchParameters.CategoryId,
+                searchParameters.CategoryIds,
+                searchParameters.MinPrice,
+                searchParameters.MaxPrice,
+                searchParameters.MinStock,
+                searchParameters.MaxStock,
+                searchParameters.IsLowStock,
+                searchParameters.HasPromotion,
+                searchParameters.MinDiscountPercentage,
+                searchParameters.SortBy,
+                searchParameters.SortDirection,
+                searchParameters.SecondarySortBy,
+                searchParameters.SecondarySortDirection,
+                searchParameters.IncludeWithoutCategory,
+                searchParameters.ExactMatch,
+                searchParameters.CaseSensitive);
+
+            var productDTOs = _mapper.Map<IEnumerable<ProductDTO>>(products);
+
+            return new PagedResult<ProductDTO>(
+                productDTOs,
+                searchParameters.PageNumber,
+                searchParameters.PageSize,
                 totalCount);
         }
 

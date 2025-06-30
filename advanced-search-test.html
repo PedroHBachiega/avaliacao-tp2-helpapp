@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Busca Avançada - StockApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .search-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .promotion-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .low-stock-badge {
+            background: #f39c12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button:hover {
+            background: #f5f5f5;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .stats-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .criteria-display {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .criteria-display h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .criteria-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .criteria-tag {
+            background: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Busca Avançada - StockApp</h1>
+        
+        <!-- Estatísticas -->
+        <div class="stats-container">
+            <h3>Estatísticas do Sistema</h3>
+            <div id="statsLoading" class="loading">Carregando estatísticas...</div>
+            <div id="statsContent" class="stats-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Formulário de Busca -->
+        <div class="search-form">
+            <h2>Filtros de Busca</h2>
+            <form id="searchForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="searchTerm">Termo de Busca Geral:</label>
+                        <div class="autocomplete-container">
+                            <input type="text" id="searchTerm" name="searchTerm" placeholder="Digite qualquer termo..." autocomplete="off">
+                            <div id="suggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Nome Específico:</label>
+                        <input type="text" id="name" name="name" placeholder="Nome exato do produto">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Descrição:</label>
+                        <input type="text" id="description" name="description" placeholder="Buscar na descrição">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoryId">Categoria:</label>
+                        <select id="categoryId" name="categoryId">
+                            <option value="">Todas as categorias</option>
+                            <option value="1">Eletrônicos</option>
+                            <option value="2">Roupas</option>
+                            <option value="3">Casa e Jardim</option>
+                            <option value="4">Esportes</option>
+                            <option value="5">Livros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="minPrice">Preço Mínimo:</label>
+                        <input type="number" id="minPrice" name="minPrice" step="0.01" placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxPrice">Preço Máximo:</label>
+                        <input type="number" id="maxPrice" name="maxPrice" step="0.01" placeholder="999999.99">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="minStock">Estoque Mínimo:</label>
+                        <input type="number" id="minStock" name="minStock" placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxStock">Estoque Máximo:</label>
+                        <input type="number" id="maxStock" name="maxStock" placeholder="999999">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sortBy">Ordenar por:</label>
+                        <select id="sortBy" name="sortBy">
+                            <option value="name">Nome</option>
+                            <option value="price">Preço</option>
+                            <option value="stock">Estoque</option>
+                            <option value="category">Categoria</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sortDirection">Direção:</label>
+                        <select id="sortDirection" name="sortDirection">
+                            <option value="asc">Crescente</option>
+                            <option value="desc">Decrescente</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="secondarySortBy">Ordenação Secundária:</label>
+                        <select id="secondarySortBy" name="secondarySortBy">
+                            <option value="">Nenhuma</option>
+                            <option value="name">Nome</option>
+                            <option value="price">Preço</option>
+                            <option value="stock">Estoque</option>
+                            <option value="category">Categoria</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="minDiscountPercentage">Desconto Mínimo (%):</label>
+                        <input type="number" id="minDiscountPercentage" name="minDiscountPercentage" min="0" max="100" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Opções Avançadas:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="isLowStock" name="isLowStock">
+                            <label for="isLowStock">Apenas estoque baixo</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="hasPromotion" name="hasPromotion">
+                            <label for="hasPromotion">Apenas com promoção</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="includeWithoutCategory" name="includeWithoutCategory">
+                            <label for="includeWithoutCategory">Incluir sem categoria</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exactMatch" name="exactMatch">
+                            <label for="exactMatch">Busca exata</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="caseSensitive" name="caseSensitive">
+                            <label for="caseSensitive">Sensível a maiúsculas</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn">Buscar Produtos</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">Limpar Filtros</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resultados -->
+        <div class="results-section">
+            <div id="searchCriteria" class="criteria-display" style="display: none;">
+                <h4>Critérios de Busca Aplicados:</h4>
+                <div id="criteriaList" class="criteria-list"></div>
+            </div>
+
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                Buscando produtos...
+            </div>
+
+            <div id="searchResults">
+                <h3>Resultados da Busca</h3>
+                <p>Use os filtros acima para buscar produtos.</p>
+            </div>
+
+            <div id="errorMessage" class="error" style="display: none;"></div>
+
+            <div id="pagination" class="pagination" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let debounceTimer;
+        let currentPage = 1;
+        const pageSize = 10;
+        let suggestionTimer;
+
+        // Carregar estatísticas ao inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            setupAutocomplete();
+        });
+
+        // Função para carregar estatísticas
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/products/search-stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    displayStats(stats);
+                } else {
+                    document.getElementById('statsLoading').textContent = 'Erro ao carregar estatísticas';
+                }
+            } catch (error) {
+                document.getElementById('statsLoading').textContent = 'Erro ao carregar estatísticas';
+            }
+        }
+
+        // Função para exibir estatísticas
+        function displayStats(stats) {
+            const statsContent = document.getElementById('statsContent');
+            statsContent.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${stats.totalProducts}</div>
+                    <div class="stat-label">Total de Produtos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">R$ ${stats.averagePrice.toFixed(2)}</div>
+                    <div class="stat-label">Preço Médio</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.totalStock}</div>
+                    <div class="stat-label">Estoque Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.lowStockCount}</div>
+                    <div class="stat-label">Produtos com Estoque Baixo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.promotionCount}</div>
+                    <div class="stat-label">Produtos em Promoção</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${stats.categoriesCount}</div>
+                    <div class="stat-label">Categorias</div>
+                </div>
+            `;
+            document.getElementById('statsLoading').style.display = 'none';
+            statsContent.style.display = 'grid';
+        }
+
+        // Configurar autocomplete
+        function setupAutocomplete() {
+            const searchInput = document.getElementById('searchTerm');
+            const suggestionsDiv = document.getElementById('suggestions');
+
+            searchInput.addEventListener('input', function() {
+                const term = this.value.trim();
+                
+                clearTimeout(suggestionTimer);
+                
+                if (term.length < 2) {
+                    hideSuggestions();
+                    return;
+                }
+
+                suggestionTimer = setTimeout(() => {
+                    getSuggestions(term);
+                }, 300);
+            });
+
+            searchInput.addEventListener('blur', function() {
+                setTimeout(() => hideSuggestions(), 200);
+            });
+
+            searchInput.addEventListener('focus', function() {
+                const term = this.value.trim();
+                if (term.length >= 2) {
+                    getSuggestions(term);
+                }
+            });
+        }
+
+        // Buscar sugestões
+        async function getSuggestions(term) {
+            try {
+                const response = await fetch(`/api/products/suggestions?term=${encodeURIComponent(term)}&limit=8`);
+                if (response.ok) {
+                    const suggestions = await response.json();
+                    displaySuggestions(suggestions);
+                } else {
+                    hideSuggestions();
+                }
+            } catch (error) {
+                hideSuggestions();
+            }
+        }
+
+        // Exibir sugestões
+        function displaySuggestions(suggestions) {
+            const suggestionsDiv = document.getElementById('suggestions');
+            
+            if (suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsDiv.innerHTML = suggestions.map(item => `
+                <div class="suggestion-item" onclick="selectSuggestion('${item.name.replace(/'/g, "\\'")}')"> 
+                    <strong>${item.name}</strong><br>
+                    <small>R$ ${item.price.toFixed(2)} | Estoque: ${item.stock} | ${item.category || 'Sem categoria'}</small>
+                </div>
+            `).join('');
+            
+            suggestionsDiv.style.display = 'block';
+        }
+
+        // Selecionar sugestão
+        function selectSuggestion(name) {
+            document.getElementById('searchTerm').value = name;
+            hideSuggestions();
+        }
+
+        // Ocultar sugestões
+        function hideSuggestions() {
+            document.getElementById('suggestions').style.display = 'none';
+        }
+
+        // Função para realizar busca
+        function performSearch(page = 1) {
+            hideSuggestions();
+            currentPage = page;
+            
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                const formData = new FormData(document.getElementById('searchForm'));
+                const searchParams = new URLSearchParams();
+
+                // Adicionar parâmetros do formulário
+                for (let [key, value] of formData.entries()) {
+                    if (value && value.trim() !== '') {
+                        if (key === 'isLowStock' || key === 'hasPromotion' || key === 'includeWithoutCategory' || 
+                            key === 'exactMatch' || key === 'caseSensitive') {
+                            searchParams.append(key, 'true');
+                        } else {
+                            searchParams.append(key, value.trim());
+                        }
+                    }
+                }
+
+                // Adicionar paginação
+                searchParams.append('pageNumber', page.toString());
+                searchParams.append('pageSize', pageSize.toString());
+
+                // Mostrar indicador de carregamento
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('searchResults').innerHTML = '';
+                document.getElementById('pagination').style.display = 'none';
+
+                try {
+                    const response = await fetch(`/api/products/advanced-search?${searchParams.toString()}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        displayResults(data);
+                        displaySearchCriteria(searchParams);
+                    } else {
+                        const errorData = await response.json();
+                        showError(`Erro na busca: ${errorData.message || 'Erro desconhecido'}`);
+                    }
+                } catch (error) {
+                    showError(`Erro de conexão: ${error.message}`);
+                } finally {
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                }
+            }, 300);
+        }
+
+        // Função para exibir resultados
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (data.items && data.items.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h3>Resultados da Busca (${data.totalCount} produtos encontrados)</h3>
+                    <div class="product-grid">
+                        ${data.items.map(product => `
+                            <div class="product-card">
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                                <div class="product-info">Estoque: ${product.stock}</div>
+                                <div class="product-info">Categoria: ${product.category?.name || 'Sem categoria'}</div>
+                                ${product.description ? `<div class="product-info">Descrição: ${product.description}</div>` : ''}
+                                ${product.discountPercentage ? `<span class="promotion-badge">-${product.discountPercentage}%</span>` : ''}
+                                ${product.stock < 10 ? `<span class="low-stock-badge">Estoque Baixo</span>` : ''}
+                                ${product.promotionDescription ? `<div class="product-info">Promoção: ${product.promotionDescription}</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                // Mostrar paginação se necessário
+                if (data.totalPages > 1) {
+                    displayPagination(data.currentPage, data.totalPages);
+                }
+            } else {
+                resultsDiv.innerHTML = `
+                    <h3>Nenhum produto encontrado</h3>
+                    <p>Tente ajustar os filtros de busca.</p>
+                `;
+            }
+        }
+
+        // Função para exibir paginação
+        function displayPagination(currentPage, totalPages) {
+            const paginationDiv = document.getElementById('pagination');
+            let paginationHTML = '';
+
+            // Botão anterior
+            if (currentPage > 1) {
+                paginationHTML += `<button onclick="performSearch(${currentPage - 1})">Anterior</button>`;
+            }
+
+            // Páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                paginationHTML += `<button class="${activeClass}" onclick="performSearch(${i})">${i}</button>`;
+            }
+
+            // Botão próximo
+            if (currentPage < totalPages) {
+                paginationHTML += `<button onclick="performSearch(${currentPage + 1})">Próximo</button>`;
+            }
+
+            paginationDiv.innerHTML = paginationHTML;
+            paginationDiv.style.display = 'flex';
+        }
+
+        // Função para exibir critérios de busca
+        function displaySearchCriteria(searchParams) {
+            const criteriaDiv = document.getElementById('searchCriteria');
+            const criteriaList = document.getElementById('criteriaList');
+            
+            const criteria = [];
+            
+            for (let [key, value] of searchParams.entries()) {
+                if (key !== 'pageNumber' && key !== 'pageSize' && value) {
+                    let label = key;
+                    switch(key) {
+                        case 'searchTerm': label = `Termo: ${value}`; break;
+                        case 'name': label = `Nome: ${value}`; break;
+                        case 'description': label = `Descrição: ${value}`; break;
+                        case 'categoryId': label = `Categoria ID: ${value}`; break;
+                        case 'minPrice': label = `Preço min: R$ ${value}`; break;
+                        case 'maxPrice': label = `Preço max: R$ ${value}`; break;
+                        case 'minStock': label = `Estoque min: ${value}`; break;
+                        case 'maxStock': label = `Estoque max: ${value}`; break;
+                        case 'sortBy': label = `Ordenar: ${value}`; break;
+                        case 'sortDirection': label = `Direção: ${value}`; break;
+                        case 'secondarySortBy': label = `Ord. secundária: ${value}`; break;
+                        case 'minDiscountPercentage': label = `Desconto min: ${value}%`; break;
+                        case 'isLowStock': label = 'Estoque baixo'; break;
+                        case 'hasPromotion': label = 'Com promoção'; break;
+                        case 'includeWithoutCategory': label = 'Incluir sem categoria'; break;
+                        case 'exactMatch': label = 'Busca exata'; break;
+                        case 'caseSensitive': label = 'Sensível a maiúsculas'; break;
+                    }
+                    criteria.push(label);
+                }
+            }
+            
+            if (criteria.length > 0) {
+                criteriaList.innerHTML = criteria.map(c => `<span class="criteria-tag">${c}</span>`).join('');
+                criteriaDiv.style.display = 'block';
+            } else {
+                criteriaDiv.style.display = 'none';
+            }
+        }
+
+        // Função para mostrar erro
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Função para limpar formulário
+        function clearForm() {
+            document.getElementById('searchForm').reset();
+            document.getElementById('searchResults').innerHTML = '<h3>Resultados da Busca</h3><p>Use os filtros acima para buscar produtos.</p>';
+            document.getElementById('searchCriteria').style.display = 'none';
+            document.getElementById('pagination').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            hideSuggestions();
+        }
+
+        // Event listener para o formulário
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            performSearch(1);
+        });
+    </script>
+</body>
+</html>

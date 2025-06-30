@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Busca Avançada - StockApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .pagination-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #4facfe;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .product-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .product-stock {
+            font-size: 1rem;
+            color: #495057;
+        }
+
+        .product-category {
+            grid-column: 1 / -1;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .promotion-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .search-criteria {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .search-criteria h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .criteria-item {
+            display: inline-block;
+            background: white;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: 1px solid #bbdefb;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Sistema de Busca Avançada</h1>
+            <p>Encontre produtos com filtros poderosos e ordenação personalizada</p>
+        </div>
+        
+        <div class="content">
+            <form id="searchForm" class="search-form">
+                <div class="form-group">
+                    <label for="searchTerm">Busca Geral</label>
+                    <input type="text" id="searchTerm" name="searchTerm" placeholder="Digite nome ou descrição...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Nome Específico</label>
+                    <input type="text" id="name" name="name" placeholder="Nome exato do produto...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryId">Categoria</label>
+                    <select id="categoryId" name="categoryId">
+                        <option value="">Todas as categorias</option>
+                        <option value="1">Eletrônicos</option>
+                        <option value="2">Roupas</option>
+                        <option value="3">Casa e Jardim</option>
+                        <option value="4">Esportes</option>
+                        <option value="5">Livros</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="minPrice">Preço Mínimo</label>
+                    <input type="number" id="minPrice" name="minPrice" step="0.01" placeholder="0.00">
+                </div>
+                
+                <div class="form-group">
+                    <label for="maxPrice">Preço Máximo</label>
+                    <input type="number" id="maxPrice" name="maxPrice" step="0.01" placeholder="999999.99">
+                </div>
+                
+                <div class="form-group">
+                    <label for="minStock">Estoque Mínimo</label>
+                    <input type="number" id="minStock" name="minStock" placeholder="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="maxStock">Estoque Máximo</label>
+                    <input type="number" id="maxStock" name="maxStock" placeholder="999999">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sortBy">Ordenar Por</label>
+                    <select id="sortBy" name="sortBy">
+                        <option value="">Padrão (ID)</option>
+                        <option value="name">Nome</option>
+                        <option value="price">Preço</option>
+                        <option value="stock">Estoque</option>
+                        <option value="category">Categoria</option>
+                        <option value="discount">Desconto</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sortDirection">Direção</label>
+                    <select id="sortDirection" name="sortDirection">
+                        <option value="asc">Crescente</option>
+                        <option value="desc">Decrescente</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pageSize">Itens por Página</label>
+                    <select id="pageSize" name="pageSize">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Opções Avançadas</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isLowStock" name="isLowStock">
+                        <label for="isLowStock">Apenas estoque baixo</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasPromotion" name="hasPromotion">
+                        <label for="hasPromotion">Apenas em promoção</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="exactMatch" name="exactMatch">
+                        <label for="exactMatch">Busca exata</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="caseSensitive" name="caseSensitive">
+                        <label for="caseSensitive">Case sensitive</label>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="performSearch()">🔍 Buscar Produtos</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm()">🗑️ Limpar Filtros</button>
+            </div>
+            
+            <div id="results" class="results" style="display: none;">
+                <div id="searchCriteria" class="search-criteria" style="display: none;">
+                    <h4>Critérios de Busca Aplicados:</h4>
+                    <div id="criteriaList"></div>
+                </div>
+                
+                <div class="results-header">
+                    <div class="results-count" id="resultsCount">0 produtos encontrados</div>
+                    <div class="pagination-info" id="paginationInfo">Página 1 de 1</div>
+                </div>
+                
+                <div id="productGrid" class="product-grid"></div>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <p>🔄 Buscando produtos...</p>
+            </div>
+            
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api/products';
+        let currentPage = 1;
+        let currentSearchParams = {};
+
+        async function performSearch(page = 1) {
+            const form = document.getElementById('searchForm');
+            const formData = new FormData(form);
+            
+            // Construir parâmetros de busca
+            const searchParams = new URLSearchParams();
+            searchParams.append('pageNumber', page);
+            
+            for (let [key, value] of formData.entries()) {
+                if (value && value.trim() !== '') {
+                    if (key === 'isLowStock' || key === 'hasPromotion' || key === 'exactMatch' || key === 'caseSensitive') {
+                        searchParams.append(key, 'true');
+                    } else {
+                        searchParams.append(key, value);
+                    }
+                }
+            }
+            
+            currentSearchParams = Object.fromEntries(searchParams.entries());
+            currentPage = page;
+            
+            showLoading();
+            hideError();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/advanced-search?${searchParams.toString()}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Erro na busca:', error);
+                showError(`Erro ao buscar produtos: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function displayResults(result) {
+            const { data, searchCriteria } = result;
+            const { items, pageNumber, pageSize, totalCount, totalPages } = data;
+            
+            // Mostrar critérios de busca
+            displaySearchCriteria(searchCriteria);
+            
+            // Atualizar contadores
+            document.getElementById('resultsCount').textContent = `${totalCount} produtos encontrados`;
+            document.getElementById('paginationInfo').textContent = `Página ${pageNumber} de ${totalPages}`;
+            
+            // Mostrar produtos
+            const productGrid = document.getElementById('productGrid');
+            
+            if (items.length === 0) {
+                productGrid.innerHTML = '<div class="no-results">🔍 Nenhum produto encontrado com os critérios especificados.</div>';
+            } else {
+                productGrid.innerHTML = items.map(product => createProductCard(product)).join('');
+            }
+            
+            // Mostrar seção de resultados
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function displaySearchCriteria(criteria) {
+            const criteriaList = document.getElementById('criteriaList');
+            const criteriaDiv = document.getElementById('searchCriteria');
+            
+            const criteriaItems = [];
+            
+            if (criteria.searchTerm) criteriaItems.push(`Termo: "${criteria.searchTerm}"`);
+            if (criteria.categoryFilter) criteriaItems.push(`Categoria: ${criteria.categoryFilter}`);
+            if (criteria.priceRange.min || criteria.priceRange.max) {
+                const min = criteria.priceRange.min || '0';
+                const max = criteria.priceRange.max || '∞';
+                criteriaItems.push(`Preço: R$ ${min} - R$ ${max}`);
+            }
+            if (criteria.stockRange.min || criteria.stockRange.max) {
+                const min = criteria.stockRange.min || '0';
+                const max = criteria.stockRange.max || '∞';
+                criteriaItems.push(`Estoque: ${min} - ${max}`);
+            }
+            if (criteria.hasPromotion) criteriaItems.push('Em promoção');
+            if (criteria.sortBy) criteriaItems.push(`Ordenação: ${criteria.sortBy} (${criteria.sortDirection})`);
+            
+            if (criteriaItems.length > 0) {
+                criteriaList.innerHTML = criteriaItems.map(item => `<span class="criteria-item">${item}</span>`).join('');
+                criteriaDiv.style.display = 'block';
+            } else {
+                criteriaDiv.style.display = 'none';
+            }
+        }
+        
+        function createProductCard(product) {
+            const hasPromotion = product.discountPercentage && product.discountPercentage > 0;
+            const promotionBadge = hasPromotion ? `<div class="promotion-badge">-${product.discountPercentage}%</div>` : '';
+            
+            return `
+                <div class="product-card">
+                    ${promotionBadge}
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-description">${product.description}</div>
+                    <div class="product-details">
+                        <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                        <div class="product-stock">Estoque: ${product.stock}</div>
+                        <div class="product-category">${product.category?.name || 'Sem categoria'}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function clearForm() {
+            document.getElementById('searchForm').reset();
+            document.getElementById('results').style.display = 'none';
+            hideError();
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        // Permitir busca ao pressionar Enter
+        document.getElementById('searchForm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+        
+        // Busca inicial ao carregar a página
+        window.addEventListener('load', function() {
+            performSearch();
+        });
+    </script>
+</body>
+</html>
