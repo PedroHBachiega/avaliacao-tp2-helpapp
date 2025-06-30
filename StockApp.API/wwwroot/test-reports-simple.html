@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples de API de Relatórios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste Simples da API de Relatórios</h1>
+    
+    <div>
+        <h2>Teste 1: Obter Tipos de Relatórios</h2>
+        <button id="getTypesBtn">Obter Tipos de Relatórios</button>
+        <pre id="typesResult">Resultado aparecerá aqui...</pre>
+    </div>
+    
+    <div>
+        <h2>Teste 2: Obter Parâmetros para Relatório de Vendas</h2>
+        <button id="getParamsBtn">Obter Parâmetros (Vendas)</button>
+        <pre id="paramsResult">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <div>
+        <h2>Teste 3: Gerar Relatório Simples</h2>
+        <button id="generateReportBtn">Gerar Relatório de Vendas</button>
+        <pre id="reportResult">Resultado aparecerá aqui...</pre>
+    </div>
+
+    <script>
+        // Teste 1: Obter tipos de relatórios
+        document.getElementById('getTypesBtn').addEventListener('click', function() {
+            const resultElement = document.getElementById('typesResult');
+            resultElement.textContent = 'Carregando...';
+            resultElement.className = '';
+            
+            fetch('/api/CustomReports/types')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    resultElement.textContent = `Erro: ${error.message}`;
+                    resultElement.className = 'error';
+                    console.error('Erro ao obter tipos de relatórios:', error);
+                });
+        });
+        
+        // Teste 2: Obter parâmetros para relatório de vendas
+        document.getElementById('getParamsBtn').addEventListener('click', function() {
+            const resultElement = document.getElementById('paramsResult');
+            resultElement.textContent = 'Carregando...';
+            resultElement.className = '';
+            
+            fetch('/api/CustomReports/parameters/vendas')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    resultElement.textContent = `Erro: ${error.message}`;
+                    resultElement.className = 'error';
+                    console.error('Erro ao obter parâmetros:', error);
+                });
+        });
+
+        // Teste 3: Gerar relatório simples
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            const resultElement = document.getElementById('reportResult');
+            resultElement.textContent = 'Carregando...';
+            resultElement.className = '';
+            
+            const reportParams = {
+                reportType: 'vendas',
+                startDate: new Date().toISOString(),
+                endDate: new Date().toISOString()
+            };
+            
+            fetch('/api/CustomReports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reportParams)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Status: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                resultElement.textContent = `Erro: ${error.message}`;
+                resultElement.className = 'error';
+                console.error('Erro ao gerar relatório:', error);
+            });
+        });
+    </script>
+</body>
+</html>

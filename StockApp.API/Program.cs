@@ -61,6 +61,7 @@ public class Program
             builder.Services.AddScoped<IJustInTimeInventoryService, StockApp.Infra.Data.Services.JustInTimeInventoryService>();
             builder.Services.AddScoped<IEmployeePerformanceEvaluationService, StockApp.Application.Services.EmployeePerformanceEvaluationService>();
             builder.Services.AddScoped<ISalesPredictionService, StockApp.Application.Services.SalesPredictionService>();
+            builder.Services.AddScoped<ICustomReportService, CustomReportService>();
 
             builder.Services.AddControllers(options =>
             {
@@ -73,18 +74,9 @@ public class Program
             {
                 options.AddPolicy("CorsPolicy", policy =>
                 {
-                    if (builder.Environment.IsDevelopment())
-                    {
-                        policy.AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                    }
-                    else
-                    {
-                        policy.WithOrigins("http://localhost:3000")
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                    }
+                    policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
                 });
             });
 
