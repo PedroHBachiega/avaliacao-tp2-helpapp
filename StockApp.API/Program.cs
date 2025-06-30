@@ -51,6 +51,7 @@ public class Program
                 options.InstanceName = "StockApp";
             });
 
+            builder.Services.AddScoped<IAuditService, AuditService>();
             builder.Services.AddInfrastructureAPI(builder.Configuration);
             builder.Services.AddScoped<IUserService, StockApp.Infrastructure.Services.UserService>();
             builder.Services.AddScoped<IProductRepository, StockApp.Infra.Data.Repositories.ProductRepository>();
